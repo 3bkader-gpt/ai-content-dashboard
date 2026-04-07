@@ -1,0 +1,455 @@
+import { createHash } from "node:crypto";
+import { eq, desc, lt, and } from "drizzle-orm";
+import { Hono } from "hono";
+import { z } from "zod";
+import { nanoid } from "nanoid";
+import { db } from "../db/index.js";
+import { kits, idempotencyKeys, type KitRow } from "../db/schema.js";
+import { buildSubmissionSnapshot, briefFingerprint, isPlainObject, parseSubmissionSnapshotJson } from "../logic/parse.js";
+import { resolvePrompt } from "../logic/promptResolver.js";
+import { callGeminiAPI, loadGeminiSettingsFromEnv } from "../logic/geminiClient.js";
+import { validateGeminiResponse } from "../logic/validate.js";
+import { getStatusBadgeLabel, getStatusBadgePalette, normalizeDeliveryStatus } from "../logic/status.js";
+import { buildDemoKitContent } from "../logic/demoKit.js";
+import { resolveDeliveryStatus, sendAdminFailureAlert, sendClientDelayEmail, sendKitEmail } from "../email/send.js";
+import { recordKitNotification } from "../logic/notifyKit.js";
+import type { Next } from "hono";
+
+const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
+
+const generateBodySchema = z
+  .object({
+    submitted_at: z.union([z.string(), z.number()]).optional(),
+    email: z.string().optional(),
+    brand_name: z.string().optional().default(""),
+    industry: z.string().optional().default(""),
+    target_audience: z.string().optional().default(""),
+    main_goal: z.string().optional().default(""),
+    platforms: z.string().optional().default(""),
+    brand_tone: z.string().optional().default(""),
+    brand_colors: z.string().optional().default(""),
+    offer: z.string().optional().default(""),
+    competitors: z.string().optional().default(""),
+    visual_notes: z.string().optional().default(""),
+    campaign_duration: z.string().optional().default(""),
+    budget_level: z.string().optional().default(""),
+    best_content_types: z.string().optional().default(""),
+    num_posts: z.number().optional(),
+    num_image_designs: z.number().optional(),
+    num_video_prompts: z.number().optional(),
+    campaign_mode: z.enum(["social", "offer", "deep"]).optional(),
+  })
+  .passthrough();
+
+const retryBodySchema = z.object({
+  brief_json: z.string().min(1),
+  row_version: z.number().int().nonnegative(),
+});
+
+export function hashIdempotencyKey(key: string): string {
+  return createHash("sha256").update(String(key).trim(), "utf8").digest("hex");
+}
+
+function pruneExpiredIdempotency() {
+  const now = Date.now();
+  db.delete(idempotencyKeys).where(lt(idempotencyKeys.expiresAt, now)).run();
+}
+
+function serializeKit(row: KitRow) {
+  const status = row.deliveryStatus;
+  const palette = getStatusBadgePalette(status);
+  let result: unknown = null;
+  if (row.resultJson) {
+    try {
+      result = JSON.parse(row.resultJson);
+    } catch {
+      result = null;
+    }
+  }
+  return {
+    id: row.id,
+    brief_json: row.briefJson,
+    result_json: result,
+    delivery_status: row.deliveryStatus,
+    status_badge: getStatusBadgeLabel(status),
+    badge_palette: palette,
+    model_used: row.modelUsed,
+    last_error: row.lastError,
+    correlation_id: row.correlationId,
+    prompt_version_id: row.promptVersionId ?? null,
+    is_fallback: Boolean(row.isFallback),
+    row_version: row.rowVersion,
+    created_at: row.createdAt.toISOString(),
+    updated_at: row.updatedAt.toISOString(),
+  };
+}
+
+async function persistKit(
+  snapshot: ReturnType<typeof buildSubmissionSnapshot>,
+  aiContent: Record<string, unknown> | null,
+  meta: {
+    deliveryStatus: string;
+    modelUsed: string;
+    lastError: string;
+    correlationId: string;
+    promptVersionId?: string | null;
+    isFallback?: boolean;
+    rowVersion?: number;
+  }
+) {
+  const id = nanoid();
+  const now = new Date();
+  const briefJson = JSON.stringify({
+    ...snapshot,
+    submitted_at: snapshot.submitted_at.toISOString(),
+  });
+
+  await db.insert(kits).values({
+    id,
+    briefJson,
+    resultJson: aiContent ? JSON.stringify(aiContent) : null,
+    deliveryStatus: meta.deliveryStatus,
+    modelUsed: meta.modelUsed,
+    lastError: meta.lastError,
+    correlationId: meta.correlationId,
+    promptVersionId: meta.promptVersionId ?? null,
+    isFallback: meta.isFallback ?? false,
+    rowVersion: meta.rowVersion ?? 0,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  const row = await db.select().from(kits).where(eq(kits.id, id)).get();
+  if (!row) throw new Error("Failed to read inserted kit");
+  return row;
+}
+
+async function updateKit(
+  id: string,
+  snapshot: ReturnType<typeof buildSubmissionSnapshot>,
+  aiContent: Record<string, unknown> | null,
+  meta: {
+    deliveryStatus: string;
+    modelUsed: string;
+    lastError: string;
+    correlationId: string;
+    promptVersionId?: string | null;
+    isFallback?: boolean;
+    rowVersion: number;
+  }
+) {
+  const now = new Date();
+  const briefJson = JSON.stringify({
+    ...snapshot,
+    submitted_at: snapshot.submitted_at.toISOString(),
+  });
+
+  const updated = await db
+    .update(kits)
+    .set({
+      briefJson,
+      resultJson: aiContent ? JSON.stringify(aiContent) : null,
+      deliveryStatus: meta.deliveryStatus,
+      modelUsed: meta.modelUsed,
+      lastError: meta.lastError,
+      correlationId: meta.correlationId,
+      promptVersionId: meta.promptVersionId ?? null,
+      isFallback: meta.isFallback ?? false,
+      rowVersion: meta.rowVersion,
+      updatedAt: now,
+    })
+    .where(and(eq(kits.id, id), eq(kits.rowVersion, meta.rowVersion - 1)))
+    .returning();
+
+  if (!updated.length) {
+    return null;
+  }
+  return updated[0]!;
+}
+
+export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => Promise<void | Response>) {
+  const app = new Hono();
+
+  app.use("/api/kits/*", mw);
+
+  app.post("/api/kits/generate", async (c) => {
+    const idemHeader = c.req.header("Idempotency-Key")?.trim();
+    if (!idemHeader) {
+      return c.json({ error: "Idempotency-Key header is required." }, 400);
+    }
+
+    let body: z.infer<typeof generateBodySchema>;
+    try {
+      body = generateBodySchema.parse(await c.req.json());
+    } catch {
+      return c.json({ error: "Invalid JSON body." }, 400);
+    }
+
+    const snapshot = buildSubmissionSnapshot(body as Record<string, unknown>);
+    const fp = briefFingerprint(snapshot);
+    const keyHash = hashIdempotencyKey(idemHeader);
+
+    pruneExpiredIdempotency();
+
+    const existingKey = await db.select().from(idempotencyKeys).where(eq(idempotencyKeys.keyHash, keyHash)).get();
+    if (existingKey) {
+      if (existingKey.briefHash !== fp) {
+        return c.json({ error: "Idempotency-Key already used with a different brief." }, 409);
+      }
+      const kit = await db.select().from(kits).where(eq(kits.id, existingKey.kitId)).get();
+      if (kit) return c.json(serializeKit(kit));
+      await db.delete(idempotencyKeys).where(eq(idempotencyKeys.keyHash, keyHash)).run();
+    }
+
+    const demoMode = String(process.env.DEMO_MODE ?? "").toLowerCase() === "true";
+    const settings = loadGeminiSettingsFromEnv();
+    const correlationId = nanoid();
+    // Source of truth: prompt text is resolved from DB catalog only.
+    const resolved = await resolvePrompt(snapshot.industry, snapshot);
+
+    if (demoMode) {
+      const aiContent = buildDemoKitContent(snapshot) as Record<string, unknown>;
+      const emailResult = await sendKitEmail(snapshot, aiContent);
+      const delivery = resolveDeliveryStatus(emailResult);
+      const row = await persistKit(snapshot, aiContent, {
+        deliveryStatus: delivery,
+        modelUsed: "demo-mode",
+        lastError: emailResult.error || "",
+        correlationId,
+        promptVersionId: resolved.promptVersionId,
+        isFallback: resolved.isFallback,
+      });
+      recordKitNotification(row);
+      await db
+        .insert(idempotencyKeys)
+        .values({ keyHash, briefHash: fp, kitId: row.id, expiresAt: Date.now() + IDEMPOTENCY_TTL_MS })
+        .run();
+      return c.json(serializeKit(row));
+    }
+
+    if (!settings.apiKey) {
+      const row = await persistKit(snapshot, null, {
+        deliveryStatus: "failed_generation",
+        modelUsed: settings.model,
+        lastError: "Missing GEMINI_API_KEY.",
+        correlationId,
+        promptVersionId: resolved.promptVersionId,
+        isFallback: resolved.isFallback,
+      });
+      recordKitNotification(row);
+      await db
+        .insert(idempotencyKeys)
+        .values({ keyHash, briefHash: fp, kitId: row.id, expiresAt: Date.now() + IDEMPOTENCY_TTL_MS })
+        .run();
+      return c.json(serializeKit(row), 201);
+    }
+
+    try {
+      const promptText = resolved.renderedPrompt;
+      const raw = await callGeminiAPI(promptText, settings);
+      if (!isPlainObject(raw)) {
+        throw new Error("Gemini returned non-object JSON.");
+      }
+      const validationErrors = validateGeminiResponse(raw, snapshot);
+      if (validationErrors.length > 0) {
+        throw new Error("Gemini validation failed: " + validationErrors.join(" | "));
+      }
+      const aiContent = raw as Record<string, unknown>;
+      const emailResult = await sendKitEmail(snapshot, aiContent);
+      const delivery = resolveDeliveryStatus(emailResult);
+      const row = await persistKit(snapshot, aiContent, {
+        deliveryStatus: delivery,
+        modelUsed: settings.model,
+        lastError: emailResult.error || "",
+        correlationId,
+        promptVersionId: resolved.promptVersionId,
+        isFallback: resolved.isFallback,
+      });
+      recordKitNotification(row);
+      await db
+        .insert(idempotencyKeys)
+        .values({ keyHash, briefHash: fp, kitId: row.id, expiresAt: Date.now() + IDEMPOTENCY_TTL_MS })
+        .run();
+      return c.json(serializeKit(row), 201);
+    } catch (err) {
+      const reason = String(err);
+      const row = await persistKit(snapshot, null, {
+        deliveryStatus: "failed_generation",
+        modelUsed: settings.model,
+        lastError: reason,
+        correlationId,
+        promptVersionId: resolved.promptVersionId,
+        isFallback: resolved.isFallback,
+      });
+      recordKitNotification(row);
+      const clientDelay = await sendClientDelayEmail(snapshot, correlationId);
+      await sendAdminFailureAlert(snapshot, reason, correlationId, row.id, settings.model, clientDelay);
+      await db
+        .insert(idempotencyKeys)
+        .values({ keyHash, briefHash: fp, kitId: row.id, expiresAt: Date.now() + IDEMPOTENCY_TTL_MS })
+        .run();
+      return c.json(serializeKit(row), 201);
+    }
+  });
+
+  app.get("/api/kits", async (c) => {
+    const rows = await db.select().from(kits).orderBy(desc(kits.createdAt)).limit(200).all();
+    return c.json(rows.map(serializeKit));
+  });
+
+  app.get("/api/kits/:id", async (c) => {
+    const id = c.req.param("id");
+    const row = await db.select().from(kits).where(eq(kits.id, id)).get();
+    if (!row) return c.json({ error: "Not found" }, 404);
+    return c.json(serializeKit(row));
+  });
+
+  app.post("/api/kits/:id/retry", async (c) => {
+    const id = c.req.param("id");
+    let body: z.infer<typeof retryBodySchema>;
+    try {
+      body = retryBodySchema.parse(await c.req.json());
+    } catch {
+      return c.json({ error: "Invalid body: brief_json and row_version required." }, 400);
+    }
+
+    const row = await db.select().from(kits).where(eq(kits.id, id)).get();
+    if (!row) return c.json({ error: "Not found" }, 404);
+
+    const currentStatus = normalizeDeliveryStatus(row.deliveryStatus);
+    if (currentStatus !== "failed_generation") {
+      return c.json({ error: "Only failed_generation kits can be retried." }, 400);
+    }
+
+    if (row.rowVersion !== body.row_version) {
+      return c.json({ error: "row_version mismatch; refresh and try again." }, 409);
+    }
+
+    let snapshot;
+    try {
+      snapshot = parseSubmissionSnapshotJson(body.brief_json);
+    } catch (e) {
+      return c.json({ error: String(e) }, 400);
+    }
+
+    const settings = loadGeminiSettingsFromEnv();
+    const correlationId = nanoid();
+    const nextVersion = row.rowVersion + 1;
+    const resolved = await resolvePrompt(snapshot.industry, snapshot);
+
+    const demoMode = String(process.env.DEMO_MODE ?? "").toLowerCase() === "true";
+
+    const setRetry = await updateKit(
+      id,
+      snapshot,
+      null,
+      {
+        deliveryStatus: "retry_in_progress",
+        modelUsed: settings.model,
+        lastError: "",
+        correlationId,
+        promptVersionId: resolved.promptVersionId,
+        isFallback: resolved.isFallback,
+        rowVersion: nextVersion,
+      }
+    );
+    if (!setRetry) {
+      return c.json({ error: "Concurrent update; refresh and try again." }, 409);
+    }
+
+    if (demoMode) {
+      const aiContent = buildDemoKitContent(snapshot) as Record<string, unknown>;
+      const emailResult = await sendKitEmail(snapshot, aiContent);
+      const delivery = resolveDeliveryStatus(emailResult);
+      const finalRow = await db
+        .update(kits)
+        .set({
+          resultJson: JSON.stringify(aiContent),
+          deliveryStatus: delivery,
+          lastError: emailResult.error || "",
+          correlationId,
+          promptVersionId: resolved.promptVersionId,
+          isFallback: resolved.isFallback,
+          rowVersion: nextVersion + 1,
+          updatedAt: new Date(),
+        })
+        .where(eq(kits.id, id))
+        .returning();
+      const done = finalRow[0]!;
+      recordKitNotification(done);
+      return c.json(serializeKit(done));
+    }
+
+    if (!settings.apiKey) {
+      const fail = await db
+        .update(kits)
+        .set({
+          deliveryStatus: "failed_generation",
+          lastError: "Missing GEMINI_API_KEY.",
+          correlationId,
+          promptVersionId: resolved.promptVersionId,
+          isFallback: resolved.isFallback,
+          rowVersion: nextVersion + 1,
+          updatedAt: new Date(),
+        })
+        .where(eq(kits.id, id))
+        .returning();
+      const fr = fail[0]!;
+      recordKitNotification(fr);
+      return c.json(serializeKit(fr));
+    }
+
+    try {
+      const promptText = resolved.renderedPrompt;
+      const raw = await callGeminiAPI(promptText, settings);
+      if (!isPlainObject(raw)) throw new Error("Gemini returned non-object JSON.");
+      const validationErrors = validateGeminiResponse(raw, snapshot);
+      if (validationErrors.length > 0) {
+        throw new Error("Gemini validation failed: " + validationErrors.join(" | "));
+      }
+      const aiContent = raw as Record<string, unknown>;
+      const emailResult = await sendKitEmail(snapshot, aiContent);
+      const delivery = resolveDeliveryStatus(emailResult);
+      const finalRow = await db
+        .update(kits)
+        .set({
+          briefJson: JSON.stringify({ ...snapshot, submitted_at: snapshot.submitted_at.toISOString() }),
+          resultJson: JSON.stringify(aiContent),
+          deliveryStatus: delivery,
+          lastError: emailResult.error || "",
+          correlationId,
+          promptVersionId: resolved.promptVersionId,
+          isFallback: resolved.isFallback,
+          rowVersion: nextVersion + 1,
+          updatedAt: new Date(),
+        })
+        .where(eq(kits.id, id))
+        .returning();
+      const ok = finalRow[0]!;
+      recordKitNotification(ok);
+      return c.json(serializeKit(ok));
+    } catch (err) {
+      const reason = String(err);
+      const clientDelay = await sendClientDelayEmail(snapshot, correlationId);
+      await sendAdminFailureAlert(snapshot, reason, correlationId, id, settings.model, clientDelay);
+      const fail = await db
+        .update(kits)
+        .set({
+          deliveryStatus: "failed_generation",
+          lastError: reason,
+          correlationId,
+          promptVersionId: resolved.promptVersionId,
+          isFallback: resolved.isFallback,
+          rowVersion: nextVersion + 1,
+          updatedAt: new Date(),
+        })
+        .where(eq(kits.id, id))
+        .returning();
+      const fr = fail[0]!;
+      recordKitNotification(fr);
+      return c.json(serializeKit(fr));
+    }
+  });
+
+  return app;
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.db
+*.db-journal
+server/data/
+.DS_Store
+.env
+.env.local
+client/playwright-report/
+client/test-results/

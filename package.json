@@ -1,0 +1,16 @@
+{
+  "name": "ai-content-dashboard",
+  "private": true,
+  "scripts": {
+    "dev:clean-ports": "kill-port 8787 5173 5174",
+    "dev": "npm run dev:clean-ports && concurrently -n server,client -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w server && npm run build -w client",
+    "test": "npm run test -w server",
+    "test:e2e": "npm run test:e2e -w client"
+  },
+  "workspaces": ["server", "client"],
+  "devDependencies": {
+    "kill-port": "^2.0.1",
+    "concurrently": "^9.1.0"
+  }
+}

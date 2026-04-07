@@ -1,0 +1,187 @@
+import { useEffect, useMemo, useState } from "react";
+import { getHelpTopics, type HelpTopicsResponse } from "../api";
+import PrimaryFlowBanner from "../components/PrimaryFlowBanner";
+
+const empty: HelpTopicsResponse = { resources: [], faq: [], last_updated: "" };
+
+export default function HelpPage() {
+  const [query, setQuery] = useState("");
+  const [debounced, setDebounced] = useState("");
+  const [data, setData] = useState<HelpTopicsResponse>(empty);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebounced(query), 280);
+    return () => window.clearTimeout(t);
+  }, [query]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getHelpTopics(debounced)
+      .then((d) => {
+        if (!cancelled) {
+          setData(d);
+          setErr(null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setErr("Could not load help topics from the API.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [debounced]);
+
+  const filteredResources = data.resources;
+  const filteredFaq = data.faq;
+  const hasQuery = query.trim().length > 0;
+  const noHits = hasQuery && filteredResources.length === 0 && filteredFaq.length === 0;
+
+  const lastUpdatedLabel = useMemo(() => {
+    if (!data.last_updated) return "—";
+    try {
+      return new Date(data.last_updated).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return data.last_updated;
+    }
+  }, [data.last_updated]);
+
+  return (
+    <>
+      <PrimaryFlowBanner />
+      {err && (
+        <p className="mx-auto mb-6 max-w-3xl rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-sm text-error" role="alert">
+          {err}
+        </p>
+      )}
+
+      <section className="mx-auto mb-16 max-w-5xl text-center">
+        <h1 className="headline mb-6 text-4xl font-black tracking-tight text-on-surface md:text-6xl">
+          How can we{" "}
+          <span className="bg-gradient-to-r from-tertiary to-primary bg-clip-text text-transparent">illuminate</span> your
+          journey?
+        </h1>
+        <p className="mx-auto mb-10 max-w-2xl text-lg text-on-surface-variant">
+          Access the Ethereal Engine knowledge base, technical documentation, and direct support lines to keep your vision
+          in focus.
+        </p>
+        <div className="group relative mx-auto max-w-2xl">
+          <div className="pointer-events-none absolute inset-y-0 start-5 flex items-center">
+            <span className="material-symbols-outlined text-on-surface-variant transition-colors group-focus-within:text-tertiary">
+              search
+            </span>
+          </div>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="glow-focus w-full rounded-2xl border-none bg-surface-container-lowest py-5 ps-14 pe-6 text-on-surface placeholder:text-outline transition-all focus:ring-2 focus:ring-primary/35"
+            placeholder="Search guides and FAQ (API)…"
+            aria-label="Filter help topics"
+          />
+        </div>
+      </section>
+
+      <section className="mx-auto mb-20 grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3">
+        {filteredResources.map((r) => (
+          <div
+            key={r.id}
+            className="glass-panel group rounded-[1.5rem] border-none p-8 transition-all hover:bg-surface-container-high"
+          >
+            <div
+              className={
+                "mb-6 flex h-12 w-12 items-center justify-center rounded-xl " +
+                (r.accent === "tertiary" ? "bg-tertiary-container/20 text-tertiary" : "bg-primary-container/20 text-primary")
+              }
+            >
+              <span className="material-symbols-outlined text-3xl">{r.icon}</span>
+            </div>
+            <h3 className="headline mb-3 text-xl font-bold">{r.title}</h3>
+            <p className="mb-6 text-sm leading-relaxed text-on-surface-variant">{r.desc}</p>
+            <span
+              className={
+                "inline-flex items-center gap-2 text-sm font-bold transition-all group-hover:gap-3 " +
+                (r.accent === "tertiary" ? "text-tertiary" : "text-primary")
+              }
+            >
+              {r.accent === "tertiary" ? "View Schema" : "Browse Guides"}{" "}
+              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </span>
+          </div>
+        ))}
+
+        <div className="glass-panel flex flex-col items-center justify-center rounded-[1.5rem] border-none bg-gradient-to-br from-surface-container-high to-surface-container p-8 text-center">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-secondary-container/20 text-secondary">
+            <span className="material-symbols-outlined text-4xl">support_agent</span>
+          </div>
+          <h3 className="headline mb-3 text-xl font-bold">Need Direct Help?</h3>
+          <p className="mb-6 text-sm text-on-surface-variant">Our senior architects are available for high-tier support requests.</p>
+          <button
+            type="button"
+            className="w-full rounded-xl bg-gradient-to-r from-primary to-primary-container py-4 font-black tracking-tight text-on-primary-container transition-all hover:scale-[1.02] active:scale-95"
+          >
+            CONTACT SUPPORT
+          </button>
+        </div>
+      </section>
+
+      {noHits && (
+        <p className="mx-auto mb-8 max-w-3xl text-center text-sm text-on-surface-variant" role="status">
+          No topics match “{query.trim()}”. Try “api”, “export”, or “LLM”.
+        </p>
+      )}
+
+      <section className="mx-auto mb-24 max-w-3xl">
+        <div className="mb-8 flex items-center justify-between">
+          <h2 className="headline text-2xl font-bold">Frequently Asked Questions</h2>
+          <span className="text-sm text-on-surface-variant">Last updated: {lastUpdatedLabel}</span>
+        </div>
+        <div className="space-y-4">
+          {filteredFaq.map((item, i) => (
+            <div key={i} className="overflow-hidden rounded-2xl bg-surface-container-low">
+              <button
+                type="button"
+                className="flex w-full items-center justify-between px-8 py-6 text-start transition-colors hover:bg-surface-container"
+              >
+                <span className="font-bold text-on-surface">{item.q}</span>
+                <span className="material-symbols-outlined text-on-surface-variant">expand_more</span>
+              </button>
+              <div className="border-t border-outline-variant/25 px-8 pb-6 pt-4 text-sm leading-relaxed text-on-surface-variant">
+                {item.a}
+              </div>
+            </div>
+          ))}
+        </div>
+        {hasQuery && filteredFaq.length === 0 && (
+          <p className="mt-4 text-sm text-on-surface-variant" role="status">
+            No FAQ entries match your filter.
+          </p>
+        )}
+      </section>
+
+      <section className="relative mx-auto flex max-w-5xl flex-col items-center gap-12 overflow-hidden rounded-[2.5rem] bg-surface-container-highest p-12 md:flex-row">
+        <div className="absolute -end-32 -top-32 h-64 w-64 bg-tertiary/10 blur-[100px]" />
+        <div className="absolute -bottom-32 -start-32 h-64 w-64 bg-primary/10 blur-[100px]" />
+        <div className="relative z-10 flex-1">
+          <h2 className="headline mb-4 text-3xl font-bold">Still seeking answers?</h2>
+          <p className="text-on-surface-variant">
+            Join our Discord community where over 50,000 directors share techniques, workflows, and custom node configurations.
+          </p>
+        </div>
+        <div className="relative z-10 flex shrink-0 gap-4">
+          <button
+            type="button"
+            className="flex items-center gap-3 rounded-xl border border-outline-variant/30 bg-surface-container-low px-8 py-4 font-bold transition-all hover:bg-surface-container-high"
+          >
+            <span className="material-symbols-outlined">forum</span>
+            Discord Community
+          </button>
+        </div>
+      </section>
+    </>
+  );
+}

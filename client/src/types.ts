@@ -1,0 +1,48 @@
+export type KitSummary = {
+  id: string;
+  brief_json: string;
+  result_json: unknown;
+  delivery_status: string;
+  status_badge: string;
+  badge_palette: { bg: string; fg: string; border: string };
+  model_used: string;
+  last_error: string;
+  correlation_id: string;
+  prompt_version_id?: string | null;
+  is_fallback?: boolean;
+  row_version: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CampaignMode = "social" | "offer" | "deep";
+
+export function normalizeCampaignMode(v: unknown): CampaignMode {
+  const s = String(v ?? "")
+    .trim()
+    .toLowerCase();
+  if (s === "social" || s === "offer" || s === "deep") return s;
+  return "social";
+}
+
+export type BriefForm = {
+  email: string;
+  brand_name: string;
+  industry: string;
+  target_audience: string;
+  main_goal: string;
+  platforms: string;
+  brand_tone: string;
+  brand_colors: string;
+  offer: string;
+  competitors: string;
+  visual_notes: string;
+  campaign_duration: string;
+  budget_level: string;
+  best_content_types: string;
+  /** Matches wizard path; sent to API for prompt instruction injection. */
+  campaign_mode: CampaignMode;
+  num_posts: number;
+  num_image_designs: number;
+  num_video_prompts: number;
+};
