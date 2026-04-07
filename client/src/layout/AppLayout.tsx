@@ -273,7 +273,7 @@ export default function AppLayout({
               readOnly
               onFocus={openSearch}
               onClick={openSearch}
-              className="w-40 cursor-pointer rounded-full border-none bg-surface-container-lowest py-1.5 ps-10 pe-4 text-sm text-on-surface placeholder:text-on-surface-variant/60 transition-all focus:ring-2 focus:ring-primary/45 dark:bg-earth-darkCard/80 dark:text-brand-darkText sm:w-56 md:w-64"
+              className="w-32 cursor-pointer rounded-full border-none bg-surface-container-lowest py-1.5 ps-10 pe-4 text-sm text-on-surface placeholder:text-on-surface-variant/60 transition-all focus:ring-2 focus:ring-primary/45 dark:bg-earth-darkCard/80 dark:text-brand-darkText sm:w-56 md:w-64"
               placeholder="Search kits…"
               aria-label="Open search"
               aria-haspopup="dialog"
@@ -283,7 +283,7 @@ export default function AppLayout({
           <div className="mx-2 h-4 w-px bg-outline/35" />
           <span
             className={[
-              "font-manrope text-sm font-bold tracking-tight transition-colors",
+              "font-manrope text-sm font-bold tracking-tight transition-colors hidden sm:inline",
               apiStatus === "active" ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.55)]" : "",
               apiStatus === "offline" ? "text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.55)]" : "",
               apiStatus === "checking" ? "text-on-surface-variant" : "",
@@ -292,6 +292,18 @@ export default function AppLayout({
               .join(" ")}
           >
             API: {apiStatus === "active" ? "Active" : apiStatus === "offline" ? "Offline" : "Checking..."}
+          </span>
+          <span
+            className={[
+              "font-manrope text-xs font-bold tracking-tight transition-colors sm:hidden",
+              apiStatus === "active" ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.55)]" : "",
+              apiStatus === "offline" ? "text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.55)]" : "",
+              apiStatus === "checking" ? "text-on-surface-variant" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            {apiStatus === "active" ? "API ON" : apiStatus === "offline" ? "API OFF" : "API…"}
           </span>
           <div className="hidden items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary lg:flex">
             <span className="material-symbols-outlined text-sm">north_east</span>
@@ -419,7 +431,7 @@ export default function AppLayout({
             </div>
           </div>
 
-          <div className="relative flex items-center gap-3 border-s border-outline/25 ps-4" ref={userWrap}>
+          <div className="relative flex items-center gap-2 border-s border-outline/25 ps-2 sm:gap-3 sm:ps-4" ref={userWrap}>
             <button
               type="button"
               className="flex items-center gap-3 rounded-lg px-1 text-end outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
@@ -431,7 +443,7 @@ export default function AppLayout({
                 setSettingsOpen(false);
               }}
             >
-              <div>
+              <div className="hidden sm:block">
                 <p className="font-manrope text-sm font-bold text-on-surface">{profileName}</p>
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant dark:text-brand-darkText/75">AI Studio</p>
               </div>
