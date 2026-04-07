@@ -255,7 +255,7 @@ export default function AppLayout({
       </aside>
 
       <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-outline/20 bg-surface/65 px-4 backdrop-blur-xl dark:border-brand-muted/35 dark:bg-earth-darkBg/80 md:start-64 md:w-[calc(100%-16rem)] md:px-8">
-        <div className="flex min-w-0 items-center gap-3 md:gap-4">
+        <div className="flex min-w-0 items-center gap-2 md:gap-4">
           <button
             type="button"
             onClick={() => setMobileNavOpen(true)}
@@ -264,7 +264,15 @@ export default function AppLayout({
           >
             {icon("menu")}
           </button>
-          <div className="group relative">
+          <button
+            type="button"
+            onClick={openSearch}
+            className="rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high/70 focus-visible:ring-2 focus-visible:ring-primary/40 sm:hidden"
+            aria-label="Open search"
+          >
+            {icon("search")}
+          </button>
+          <div className="group relative hidden sm:block">
             <span className="material-symbols-outlined pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant">
               search
             </span>
@@ -280,7 +288,7 @@ export default function AppLayout({
               aria-expanded={searchOpen}
             />
           </div>
-          <div className="mx-2 h-4 w-px bg-outline/35" />
+          <div className="mx-1 hidden h-4 w-px bg-outline/35 sm:block sm:mx-2" />
           <span
             className={[
               "font-manrope text-sm font-bold tracking-tight transition-colors hidden sm:inline",
@@ -310,7 +318,7 @@ export default function AppLayout({
             Start from Content Wizard
           </div>
         </div>
-        <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
+        <div className="flex items-center gap-1.5 sm:gap-4 md:gap-6">
           <button
             type="button"
             onClick={toggleTheme}
@@ -321,9 +329,9 @@ export default function AppLayout({
             <span className="material-symbols-outlined text-sm">
               {themeMode === "dark" ? "light_mode" : "dark_mode"}
             </span>
-            {themeMode === "dark" ? "Light" : "Dark"}
+            <span className="hidden sm:inline">{themeMode === "dark" ? "Light" : "Dark"}</span>
           </button>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3">
             <div className="relative" ref={notifWrap}>
               <button
                 type="button"
@@ -384,7 +392,7 @@ export default function AppLayout({
               )}
             </div>
 
-            <div className="relative" ref={settingsWrap}>
+            <div className="relative hidden sm:block" ref={settingsWrap}>
               <button
                 type="button"
                 className="rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high/70 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
