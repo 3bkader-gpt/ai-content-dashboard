@@ -1,58 +1,128 @@
 # AI Content Dashboard
 
-Full-stack dashboard: Vite + React client, Hono BFF, SQLite + Drizzle, Gemini (server-side only).
+> Generate, review, and manage AI content kits (social + image + video) with a visual dashboard.
 
-## Quick start
+---
+
+## Product Preview
+
+### Main screens
+
+| Dashboard | Wizard |
+|---|---|
+| ![Dashboard](stitch/dashboard_overview/screen.png) | ![Wizard](stitch/new_content_wizard/screen.png) |
+
+| Generated Kit (Social) | Generated Kit (Video/AI Assets) |
+|---|---|
+| ![Social Strategy](stitch/generated_kit_social_strategy/screen.png) | ![Video Assets](stitch/generated_kit_video_ai_assets/screen.png) |
+
+---
+
+## Stack at a glance
+
+| Layer | Tech |
+|---|---|
+| Frontend | Vite + React + TypeScript |
+| Backend (BFF) | Hono |
+| Database | SQLite + Drizzle |
+| AI | Gemini (server-side only) |
+| Testing | Playwright (smoke E2E) |
+
+---
+
+## Architecture (simple flow)
+
+```mermaid
+flowchart LR
+  U[User] --> W[Content Wizard]
+  W -->|brief JSON + Idempotency-Key| API[Hono API]
+  API --> LLM[Gemini]
+  API --> DB[(SQLite / Drizzle)]
+  DB --> D[Dashboard + Kit Viewer]
+```
+
+---
+
+## Quick Start
 
 ```bash
 cd ai-content-dashboard
 cp .env.example server/.env
 cp .env.example client/.env.local
-# Edit server/.env: GEMINI_API_KEY, API_SECRET
-# Edit client/.env.local: VITE_API_SECRET (same as API_SECRET for single-agency MVP)
-# Optional: DEMO_MODE=true in server/.env and VITE_DEMO_MODE=true in client for demo banner + mock generation
+
+# server/.env
+# - GEMINI_API_KEY
+# - API_SECRET
+
+# client/.env.local
+# - VITE_API_SECRET  (same as API_SECRET for single-agency MVP)
+
+# optional demo mode
+# - server/.env: DEMO_MODE=true
+# - client/.env.local: VITE_DEMO_MODE=true
 
 npm install
 npm run dev
 ```
 
-### E2E (Playwright)
+- API: `http://localhost:8787`
+- UI: `http://localhost:5173`
 
-From repo root (starts dev servers with demo mode + temp DB):
+---
+
+## E2E Smoke Test
 
 ```bash
 npx playwright install
 npm run test:e2e
 ```
 
-- API: http://localhost:8787  
-- UI: http://localhost:5173  
+Runs dev servers in demo mode with a temporary DB.
 
-The **Content Wizard** auto-saves draft `step` + form fields to **localStorage** (`ai-content-dashboard:wizard-draft:v1`, debounced). The draft is cleared after a successful generate. No API secrets are stored there.
+---
 
-## API
+## Core Features
 
-All `/api/*` routes require `Authorization: Bearer <API_SECRET>`.
+- Visual wizard with auto-save draft in localStorage (`ai-content-dashboard:wizard-draft:v1`)
+- Idempotent synchronous kit generation
+- Dashboard list + searchable kit viewer
+- Structured social/image/video rendering (with copy actions)
+- Retry flow for failed generation (full regenerate)
 
-- `POST /api/kits/generate` — synchronous generation. **Required header:** `Idempotency-Key` (non-empty). Body: brief JSON (see wizard).
-- `GET /api/kits` — list kits (newest first).
-- `GET /api/kits/:id` — kit detail.
-- `POST /api/kits/:id/retry` — Phase 2: retry `failed_generation` only; body `{ "brief_json": "...", "row_version": N }` after migration adds `row_version`.
+---
 
-**Retry semantics:** Retry runs **full kit generation** again from the stored brief (same flow as generate). It does **not** patch individual JSON fields from a partially invalid LLM response. A future optional API (e.g. field-level repair) would be a separate design.
+## API Reference
 
-### Future / Phase 2+ (partial JSON repair)
+All `/api/*` routes require:
 
-- **Not covered by** `POST /api/kits/:id/retry`: that endpoint always re-runs **end-to-end generation** from `brief_json`. It cannot target a single failed node inside `result_json`.
-- **Per-field or per-section “repair”** would need a **new contract**: e.g. structured validation errors with JSON paths, a dedicated route such as `POST /api/kits/:id/repair`, idempotency/cost policies, and UI that only appears once the server supports it.
-- **Client validation** (`client/src/briefSchema.ts`) is aligned with wizard limits **manually** with server `G_LIMITS` / `buildSubmissionSnapshot` until a shared package or OpenAPI-generated types exists.
+```http
+Authorization: Bearer <API_SECRET>
+```
 
-## Intelligence parity
+| Method | Route | Purpose |
+|---|---|---|
+| `POST` | `/api/kits/generate` | Sync generation (**requires** `Idempotency-Key`) |
+| `GET` | `/api/kits` | List kits (newest first) |
+| `GET` | `/api/kits/:id` | Kit detail |
+| `POST` | `/api/kits/:id/retry` | Retry only `failed_generation` with `{ brief_json, row_version }` |
 
-Logic under `server/src/logic/` mirrors `prompt_builder_gemini.js` (prompt, schema, validation, status badges, industry modules).
+### Retry semantics
 
-## Phases
+`/api/kits/:id/retry` performs a full end-to-end regeneration from stored `brief_json`.  
+It does **not** patch individual failed nodes in `result_json`.
 
-1. Sync generate, idempotency, wizard, dashboard, viewer.  
-2. `row_version`, retry, Resend email + admin alerts, badges + toasts.  
-3. Rate limit, CSP-style headers baseline, demo mode, RTL/a11y, lazy `KitViewer`, Playwright smoke test.
+---
+
+## Known Future Scope
+
+- Field-level repair endpoint (e.g. `POST /api/kits/:id/repair`)
+- Structured validation errors with JSON paths
+- Shared schema package/OpenAPI types between client and server
+
+---
+
+## Delivery Phases
+
+1. Generate flow + wizard + dashboard + viewer  
+2. `row_version` + retry + notifications + badges/toasts  
+3. Rate limiting + baseline security headers + demo mode + RTL/a11y + lazy `KitViewer` + Playwright smoke
