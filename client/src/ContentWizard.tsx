@@ -27,6 +27,30 @@ export default function ContentWizard() {
           </p>
         </div>
 
+        <div className="mb-8 rounded-2xl border border-primary/20 bg-primary/10 p-4 md:p-5">
+          <p className="text-sm font-semibold uppercase tracking-wide text-primary">Quick start</p>
+          <h3 className="mt-1 text-xl font-extrabold text-on-surface md:text-2xl">Start in under 20 seconds</h3>
+          <p className="mt-1 text-sm text-on-surface-variant">
+            Most creators start with the social path, then switch later if needed.
+          </p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => nav("/wizard/social")}
+              className="rounded-xl bg-gradient-to-r from-primary to-primary-container px-5 py-3 text-sm font-bold text-on-primary-container transition hover:opacity-95"
+            >
+              Start now (recommended)
+            </button>
+            <button
+              type="button"
+              onClick={() => nav("/wizard/offer")}
+              className="rounded-xl border border-outline/30 bg-surface-container-high px-5 py-3 text-sm font-semibold text-on-surface transition hover:bg-surface-container-highest"
+            >
+              I need offer-focused flow
+            </button>
+          </div>
+        </div>
+
         <div className="mb-16 grid grid-cols-1 gap-8 md:grid-cols-3">
           {[
             {

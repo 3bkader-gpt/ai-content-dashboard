@@ -22,6 +22,7 @@ import {
   PLATFORM_OPTIONS,
   TARGET_AUDIENCE_OPTIONS,
 } from "./selectionOptions";
+import { emitWizardEvent, getWizardTypeFromDraftKey } from "../../lib/wizardAnalytics";
 
 type StepId = "brand" | "audience" | "channels" | "offer" | "creative" | "volume";
 
@@ -99,6 +100,7 @@ const btnSecondary =
 export default function WizardCore(props: WizardCoreProps) {
   const nav = useNavigate();
   const maxStep = props.stepOrder.length - 1;
+  const wizardType = useMemo(() => getWizardTypeFromDraftKey(props.draftKey), [props.draftKey]);
   const mergedDefaults = useMemo(() => ({ ...initialBriefForm(), ...(props.defaults ?? {}) }), [props.defaults]);
   const stepFieldMap = useMemo(() => ({ ...STEP_FIELDS, ...(props.stepFields ?? {}) }), [props.stepFields]);
   const zodSchema = props.formSchema ?? briefSchema;
@@ -133,10 +135,10 @@ export default function WizardCore(props: WizardCoreProps) {
   const [showDraftBanner, setShowDraftBanner] = useState(initialState.hadDraft);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [tipIndex, setTipIndex] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(false);
   const saveTimer = useRef<number | null>(null);
+  const startedAtRef = useRef<number>(Date.now());
   const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
 
   const {
@@ -218,8 +220,28 @@ export default function WizardCore(props: WizardCoreProps) {
   }, [loading, reduceMotion]);
 
   useEffect(() => {
-    if (step < maxStep) setConfirmSubmit(false);
-  }, [step, maxStep]);
+    emitWizardEvent({
+      name: "wizard_started",
+      wizard_type: wizardType,
+      draft_key: props.draftKey,
+      restored_draft: initialState.hadDraft,
+      elapsed_time_ms: 0,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const current = props.stepOrder[step];
+    emitWizardEvent({
+      name: "wizard_step_viewed",
+      wizard_type: wizardType,
+      draft_key: props.draftKey,
+      step_index: step,
+      step_id: current,
+      total_steps: maxStep + 1,
+      elapsed_time_ms: Date.now() - startedAtRef.current,
+    });
+  }, [step, props.draftKey, props.stepOrder, maxStep, wizardType]);
 
   const clearDraft = () => {
     localStorage.removeItem(props.draftKey);
@@ -274,14 +296,42 @@ export default function WizardCore(props: WizardCoreProps) {
     const keys = stepFieldMap[current] ?? [];
     if (keys.length) {
       const ok = await trigger([...keys]);
-      if (!ok) return;
+      if (!ok) {
+        emitWizardEvent({
+          name: "wizard_step_validation_failed",
+          wizard_type: wizardType,
+          draft_key: props.draftKey,
+          step_index: step,
+          step_id: current,
+          validation_state: "failed",
+          elapsed_time_ms: Date.now() - startedAtRef.current,
+        });
+        return;
+      }
     }
+    emitWizardEvent({
+      name: "wizard_step_next_clicked",
+      wizard_type: wizardType,
+      draft_key: props.draftKey,
+      step_index: step,
+      step_id: current,
+      validation_state: "passed",
+      elapsed_time_ms: Date.now() - startedAtRef.current,
+    });
     setStep((s) => Math.min(maxStep, s + 1));
   };
 
   const onValidSubmit = async (form: BriefForm) => {
     setErr(null);
     setLoading(true);
+    emitWizardEvent({
+      name: "wizard_generate_clicked",
+      wizard_type: wizardType,
+      draft_key: props.draftKey,
+      step_index: step,
+      step_id: props.stepOrder[step],
+      elapsed_time_ms: Date.now() - startedAtRef.current,
+    });
     try {
       const payload = {
         ...form,
@@ -291,9 +341,23 @@ export default function WizardCore(props: WizardCoreProps) {
       };
       const kit = await generateKit(payload, idempotencyKey);
       localStorage.removeItem(props.draftKey);
+      emitWizardEvent({
+        name: "kit_created_success",
+        wizard_type: wizardType,
+        draft_key: props.draftKey,
+        kit_id: kit.id,
+        elapsed_time_ms: Date.now() - startedAtRef.current,
+      });
       nav(`/kits/${kit.id}`);
     } catch (e) {
       setErr(String(e));
+      emitWizardEvent({
+        name: "kit_created_failed",
+        wizard_type: wizardType,
+        draft_key: props.draftKey,
+        error: String(e),
+        elapsed_time_ms: Date.now() - startedAtRef.current,
+      });
     } finally {
       setLoading(false);
     }
@@ -301,6 +365,15 @@ export default function WizardCore(props: WizardCoreProps) {
 
   const currentStep = props.stepOrder[step]!;
   const isFinalStep = step === maxStep;
+  const brandNameValue = watch("brand_name");
+  const industryValue = watch("industry");
+  const mainGoalValue = watch("main_goal");
+  const audienceValue = watch("target_audience");
+  const canShowValuePreview =
+    step >= 1 &&
+    Boolean(brandNameValue?.trim()) &&
+    Boolean(industryValue?.trim()) &&
+    (Boolean(mainGoalValue?.trim()) || Boolean(audienceValue?.trim()));
 
   return (
     <div className="mx-auto w-full max-w-6xl px-2 sm:px-4">
@@ -327,6 +400,18 @@ export default function WizardCore(props: WizardCoreProps) {
       <div className="wizard-root overflow-hidden rounded-2xl border border-outline/30 bg-surface-container-low sm:rounded-3xl dark:border-brand-muted/40 dark:bg-earth-darkCard/75" aria-busy={loading}>
         <div className={cn("wizard-body-wrap relative !rounded-3xl", loading && "wizard-body-wrap--loading")}>
           <div className="wizard-body p-4 sm:p-6 md:p-8">
+            {canShowValuePreview && (
+              <div className="mb-5 rounded-xl border border-secondary/30 bg-secondary/10 p-4">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-secondary">Early value preview</p>
+                <h3 className="mt-1 text-sm font-semibold text-on-surface">
+                  You are building a {wizardType} kit for {brandNameValue}
+                </h3>
+                <p className="mt-1 text-xs text-on-surface-variant">
+                  Industry: {industryValue}. Primary direction: {(mainGoalValue || audienceValue || "audience-led growth").slice(0, 120)}.
+                </p>
+              </div>
+            )}
+
             <div className="mb-6 flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:mb-8 sm:flex-wrap sm:overflow-visible">
               {props.stepOrder.map((id, i) => (
                 <span
@@ -686,36 +771,12 @@ export default function WizardCore(props: WizardCoreProps) {
 
             {isFinalStep && !loading && (
               <div className="mb-5 rounded-xl border border-primary/30 bg-primary/10 p-4 dark:border-brand-primary/40 dark:bg-brand-primary/15">
-                {!confirmSubmit ? (
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-on-surface">Ready to generate</p>
-                      <p className="text-xs text-on-surface-variant">Expected time: around 10–30 seconds.</p>
-                    </div>
-                    <button type="button" className={btnPrimary + " py-2 text-sm"} onClick={() => setConfirmSubmit(true)}>
-                      Continue
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm text-on-surface">
-                      We will submit your data now and open the result in <code>{props.routeHint}</code>.
-                    </p>
-                    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                      <button type="button" className={btnSecondary + " w-full py-2 text-sm sm:w-auto"} onClick={() => setConfirmSubmit(false)}>
-                        Cancel and edit
-                      </button>
-                      <button
-                        type="button"
-                        className={btnPrimary + " w-full py-2 text-sm sm:w-auto"}
-                        onClick={handleSubmit(onValidSubmit)}
-                        disabled={loading}
-                      >
-                        Start generating
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-on-surface">Ready to generate your kit</p>
+                  <p className="text-xs text-on-surface-variant">
+                    Takes around 10-30 seconds. Your draft stays saved, and you can edit after generation.
+                  </p>
+                </div>
               </div>
             )}
 
@@ -731,10 +792,10 @@ export default function WizardCore(props: WizardCoreProps) {
                 <button
                   type="button"
                   className={btnPrimary + " w-full sm:w-auto"}
-                  onClick={() => setConfirmSubmit((v) => !v)}
+                  onClick={handleSubmit(onValidSubmit)}
                   disabled={loading}
                 >
-                  {loading ? "Generating..." : confirmSubmit ? "Hide confirmation" : "Review before generate"}
+                  {loading ? "Generating..." : "Generate my kit now"}
                 </button>
               )}
             </div>

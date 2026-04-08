@@ -218,6 +218,48 @@ export default function KitDetail() {
       </div>
 
       {kit.result_json && (
+        <section className="mb-8 rounded-3xl border border-secondary/25 bg-secondary/10 p-4 sm:p-6">
+          <p className="text-xs font-bold uppercase tracking-wide text-secondary">Next best action</p>
+          <h2 className="mt-1 font-headline text-xl font-extrabold text-on-surface sm:text-2xl">Choose your next move</h2>
+          <p className="mt-2 text-sm text-on-surface-variant">
+            Your kit is ready. Pick the action that matches your readiness level and keep momentum.
+          </p>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl border border-outline/25 bg-surface-container-low p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-on-surface-variant">Quick win</p>
+              <p className="mt-1 text-sm font-semibold text-on-surface">Use this kit immediately</p>
+              <p className="mt-1 text-xs text-on-surface-variant">Copy your best post/video prompt and publish today.</p>
+            </div>
+            <div className="rounded-2xl border border-outline/25 bg-surface-container-low p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-on-surface-variant">Optimization</p>
+              <p className="mt-1 text-sm font-semibold text-on-surface">Regenerate weak items</p>
+              <p className="mt-1 text-xs text-on-surface-variant">Use targeted feedback to improve individual outputs.</p>
+            </div>
+            <div className="rounded-2xl border border-outline/25 bg-surface-container-low p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-on-surface-variant">Scale</p>
+              <p className="mt-1 text-sm font-semibold text-on-surface">Create another kit</p>
+              <p className="mt-1 text-xs text-on-surface-variant">Run a new angle for a second audience or offer.</p>
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Link to="/wizard" className={btnPrimary + " w-full justify-center sm:w-auto"}>
+              <span className="material-symbols-outlined text-lg">auto_awesome</span>
+              Create another kit
+            </Link>
+            <Link to="/generated-kits" className={btnSecondary + " w-full justify-center sm:w-auto"}>
+              <span className="material-symbols-outlined text-lg">inventory_2</span>
+              Open generated kits
+            </Link>
+          </div>
+          <p className="mt-3 text-xs text-on-surface-variant">
+            Trust cue: Your current kit is saved and can be revisited anytime from Generated kits.
+          </p>
+        </section>
+      )}
+
+      {kit.result_json && (
         <Suspense
           fallback={
             <div className="glass-panel flex min-h-[200px] items-center justify-center rounded-3xl border border-outline/30 p-8 text-on-surface-variant">
