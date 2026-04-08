@@ -466,7 +466,7 @@ export default function AppLayout({
                 aria-label="Account menu"
               >
                 <Link
-                  to="/prompt-catalog"
+                  to="/admin/prompt-catalog"
                   role="menuitem"
                   className="block px-4 py-2.5 text-sm text-on-surface-variant hover:bg-surface-container-low focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-inset"
                   onClick={() => setUserOpen(false)}
