@@ -149,7 +149,7 @@ export default function KitDetail({ showTechnical = false }: { showTechnical?: b
             >
               {kit.status_badge}
             </span>
-            {kit.model_used ? (
+            {showTechnical && kit.model_used ? (
               <span className="text-sm text-on-surface-variant">Model: {kit.model_used}</span>
             ) : null}
           </div>
@@ -184,7 +184,7 @@ export default function KitDetail({ showTechnical = false }: { showTechnical?: b
           </p>
         )}
 
-        {kit.correlation_id && (
+        {showTechnical && kit.correlation_id ? (
           <p className="text-sm text-on-surface-variant">
             <span className="font-semibold text-on-surface">Correlation ID:</span>{" "}
             <code dir="ltr" className="rounded bg-surface-container-lowest px-2 py-0.5 text-xs text-tertiary">
@@ -194,7 +194,7 @@ export default function KitDetail({ showTechnical = false }: { showTechnical?: b
               Copy
             </button>
           </p>
-        )}
+        ) : null}
 
         {kit.last_error && (
           <div className="rounded-2xl border border-error/30 bg-error/10 p-4">

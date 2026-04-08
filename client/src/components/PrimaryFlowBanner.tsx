@@ -12,8 +12,8 @@ export default function PrimaryFlowBanner({ className = "" }: { className?: stri
       dir="rtl"
     >
       <p className="text-right">
-        ابدأ من <strong>Dashboard</strong> لمراجعة الكيتس السابقة، أو ادخل <strong>Content Wizard</strong> لعمل كيت جديد. بعد Generate هتلاقي
-        النتيجة في صفحة <code dir="ltr">/kits/:id</code>.
+        ابدأ من <strong>Dashboard</strong> لمراجعة الكيتس السابقة، أو ادخل <strong>Content Wizard</strong> لعمل كيت جديد. بعد التوليد ستجد
+        النتيجة جاهزة في قسم <strong>الكيتس</strong> وصفحة تفاصيل الكيت.
       </p>
       <Link
         to="/wizard"

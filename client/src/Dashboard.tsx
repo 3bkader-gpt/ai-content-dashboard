@@ -30,19 +30,16 @@ export default function Dashboard() {
       return {
         total: 0,
         successRate: 0,
-        modelCount: 0,
         done: 0,
         barPct: 0,
       };
     }
     const done = kits.filter((k) => statusKind(k.status_badge) === "done").length;
     const rate = Math.round((done / kits.length) * 1000) / 10;
-    const models = new Set(kits.map((k) => k.model_used).filter(Boolean)).size;
     const barPct = Math.min(100, Math.max(8, (kits.length % 17) + 35));
     return {
       total: kits.length,
       successRate: rate,
-      modelCount: models,
       done,
       barPct,
     };
@@ -120,7 +117,7 @@ export default function Dashboard() {
 
       <PrimaryFlowBanner className="mb-8" />
 
-      <section className="mb-12 grid grid-cols-1 gap-4 md:gap-6 md:grid-cols-3">
+      <section className="mb-12 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
         <div className="group relative overflow-hidden rounded-3xl border border-brand-sand/30 bg-earth-card p-8 transition-transform duration-500 hover:scale-[1.01] dark:border-outline/30 dark:bg-surface-container-low">
           <div className="absolute -end-16 -top-16 h-32 w-32 rounded-full bg-primary/5 blur-3xl" />
           <div className="relative z-10">
@@ -163,23 +160,6 @@ export default function Dashboard() {
             <p className="mt-4 text-xs text-on-surface-variant">
               Delivered successfully: {stats.done} of {stats.total || 0}
             </p>
-          </div>
-        </div>
-
-        <div className="group relative overflow-hidden rounded-3xl border border-brand-sand/30 bg-earth-card p-8 transition-transform duration-500 hover:scale-[1.01] dark:border-outline/30 dark:bg-surface-container-low">
-          <div className="absolute -end-16 -top-16 h-32 w-32 rounded-full bg-secondary/5 blur-3xl" />
-          <div className="relative z-10">
-            <div className="mb-4 flex items-start justify-between">
-              <div className="rounded-2xl bg-secondary/10 p-3">
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  bolt
-                </span>
-              </div>
-              <span className="text-xs font-bold uppercase tracking-widest text-secondary">Models</span>
-            </div>
-            <p className="mb-1 text-sm font-semibold uppercase tracking-wide text-on-surface-variant">Model diversity</p>
-            <h3 className="headline text-5xl font-extrabold tracking-tighter text-on-surface">{stats.modelCount || "—"}</h3>
-            <p className="mt-4 text-xs text-on-surface-variant">Distinct `model_used` values in your records</p>
           </div>
         </div>
       </section>
