@@ -720,6 +720,12 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
     } catch (e) {
       return c.json({ error: String(e) }, 400);
     }
+    let referenceImage: GeminiReferenceImage | undefined;
+    try {
+      referenceImage = parseReferenceImageFromDataUrl(snapshot.reference_image);
+    } catch (e) {
+      return c.json({ error: String(e) }, 400);
+    }
 
     let resultObj: Record<string, unknown>;
     try {
@@ -762,6 +768,9 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
       "",
       "Original full creative context:",
       resolved.renderedPrompt,
+      referenceImage
+        ? "A visual reference image is attached for this request. Preserve its visual style and color direction in the regenerated item."
+        : "No visual reference image is attached for this request.",
       "",
       "Current item to replace:",
       JSON.stringify(currentItem, null, 2),
@@ -769,7 +778,7 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
 
     let generated: unknown;
     try {
-      generated = await callGeminiAPI(promptText, settings, schema);
+      generated = await callGeminiAPI(promptText, settings, schema, referenceImage);
     } catch (e) {
       return c.json({ error: `Regenerate failed: ${String(e)}` }, 502);
     }
