@@ -5,6 +5,7 @@ const labelCls =
 const fieldShell = "glow-focus rounded-xl bg-surface-container-lowest p-0.5";
 const textareaCls =
   "w-full min-h-[128px] resize-y rounded-lg border-none bg-transparent px-4 py-3 text-on-surface placeholder:text-on-surface-variant/50 focus:ring-0 focus-visible:ring-2 focus-visible:ring-primary/45";
+  "w-full min-h-[128px] resize-y rounded-lg border-none bg-transparent px-4 py-3 text-on-surface placeholder:text-on-surface-variant/50 focus:ring-0 focus-visible:ring-2 focus-visible:ring-primary/45";
 const errCls = "mt-1 text-sm text-error";
 
 export type AdditionalNotesProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {

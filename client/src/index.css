@@ -303,6 +303,10 @@
   margin-bottom: 0 !important;
 }
 
+#visual_notes {
+  margin-bottom: 0 !important;
+}
+
 @keyframes wizard-indeterminate-slide {
   0% {
     transform: translateX(-100%);
