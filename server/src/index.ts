@@ -9,16 +9,23 @@ import { createFeaturesRouter } from "./routes/features.js";
 import { createPromptCatalogRouter } from "./routes/promptCatalog.js";
 import { bearerAuth } from "./middleware/auth.js";
 import { rateLimit } from "./middleware/rateLimit.js";
+import { startIdempotencyCleanupJob } from "./services/kitGenerationService.js";
 import type { Context, Next } from "hono";
 
 async function main() {
   await runMigrations();
+  const cleanupTimer = startIdempotencyCleanupJob();
+  cleanupTimer.unref();
 
   const app = new Hono();
 
   app.use("*", secureHeaders());
 
   const origin = String(process.env.CORS_ORIGIN ?? "*").trim() || "*";
+  const isProd = String(process.env.NODE_ENV ?? "").toLowerCase() === "production";
+  if (isProd && origin === "*") {
+    console.warn("[SECURITY] CORS_ORIGIN is '*' in production. Restrict it to trusted domains.");
+  }
   app.use(
     "*",
     cors({

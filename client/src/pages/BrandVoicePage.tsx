@@ -135,7 +135,7 @@ export default function BrandVoicePage() {
             setMessage(null);
             updateBrandVoice({ pillars, avoid_words: avoidWords, sample_snippet: sampleSnippet })
               .then(() => setMessage("Brand voice saved."))
-              .catch(() => setMessage("Save failed — check API and VITE_API_SECRET."))
+              .catch(() => setMessage("Save failed. Please verify API availability."))
               .finally(() => setSaving(false));
           }}
         >

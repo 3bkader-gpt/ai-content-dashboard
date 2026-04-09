@@ -88,3 +88,5 @@ export type KitVideoPromptItem = {
   ai_tool_instructions?: string;
   why_this_converts?: string;
 };
+
+export type { BaseBrief, BriefByMode, DeepBrief, OfferBrief, SocialBrief } from "./types/briefContracts";

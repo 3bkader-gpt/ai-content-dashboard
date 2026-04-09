@@ -71,7 +71,7 @@ export default function ExtrasPage() {
               onClick={() => {
                 postExtrasWaitlist(t.id)
                   .then(() => setStatus(`You're on the waitlist for “${t.title}”.`))
-                  .catch(() => setStatus("Could not save — check API and VITE_API_SECRET."));
+                  .catch(() => setStatus("Could not save. Please verify API availability."));
               }}
             >
               Notify me →

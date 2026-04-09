@@ -5,7 +5,7 @@ import { nanoid } from "nanoid";
 import * as schema from "./schema.js";
 import { industries, industryPrompts } from "./schema.js";
 
-/** pg v8+ treats sslmode=require in the URL like verify-full; Supabase needs rejectUnauthorized:false on the Pool instead. */
+/** pg pool must strip sslmode query for node-postgres and apply TLS options explicitly. */
 function databaseUrlForPgPool(raw: string): string {
   try {
     const u = new URL(raw);
@@ -26,11 +26,12 @@ if (!rawDatabaseUrl || !/^postgres(ql)?:\/\//i.test(rawDatabaseUrl)) {
 
 const useSsl =
   !/localhost|127\.0\.0\.1/.test(rawDatabaseUrl) && !rawDatabaseUrl.includes("sslmode=disable");
+const allowInsecureSsl = String(process.env.DB_SSL_INSECURE ?? "").toLowerCase() === "true";
 
 const pool = new Pool({
   connectionString: databaseUrlForPgPool(rawDatabaseUrl),
   max: 10,
-  ssl: useSsl ? { rejectUnauthorized: false } : undefined,
+  ssl: useSsl ? { rejectUnauthorized: !allowInsecureSsl } : undefined,
 });
 
 export const db = drizzle(pool, { schema });

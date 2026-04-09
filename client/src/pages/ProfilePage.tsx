@@ -85,7 +85,7 @@ export default function ProfilePage() {
                     setEmail(p.email);
                     setMessage("Saved.");
                   })
-                  .catch(() => setMessage("Save failed — check API and VITE_API_SECRET."))
+                  .catch(() => setMessage("Save failed. Please verify API availability."))
                   .finally(() => setSaving(false));
               }}
             >

@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { generateKit, listPromptCatalogIndustries } from "../../api";
+import { listPromptCatalogIndustries } from "../../api";
 import { BRIEF_LIMITS, briefSchema, initialBriefForm } from "../../briefSchema";
 import PillGroup from "../../components/selection/PillGroup";
 import SelectableCard from "../../components/selection/SelectableCard";
@@ -15,7 +15,6 @@ import {
   encodeMultiSelection,
   encodeSingleSelection,
 } from "../../lib/selectionFieldCodec";
-import { isWizardDirty, parseWizardDraft } from "../../wizardDraft";
 import type { BriefForm } from "../../types";
 import {
   BRAND_TONE_OPTIONS,
@@ -24,7 +23,12 @@ import {
   PLATFORM_OPTIONS,
   TARGET_AUDIENCE_OPTIONS,
 } from "./selectionOptions";
-import { emitWizardEvent, getWizardTypeFromDraftKey } from "../../lib/wizardAnalytics";
+import { getWizardTypeFromDraftKey } from "../../lib/wizardAnalytics";
+import { useWizardTelemetry } from "./hooks/useWizardTelemetry";
+import { useWizardSubmission } from "./hooks/useWizardSubmission";
+import { useWizardDraft } from "./hooks/useWizardDraft";
+import WizardStepChips from "./components/WizardStepChips";
+import WizardValuePreview from "./components/WizardValuePreview";
 
 type StepId = "brand" | "audience" | "channels" | "offer" | "creative" | "volume";
 
@@ -123,28 +127,9 @@ export default function WizardCore(props: WizardCoreProps) {
       });
   }, []);
 
-  const initialState = useMemo(() => {
-    try {
-      const raw = localStorage.getItem(props.draftKey);
-      if (!raw) return { step: 0, form: mergedDefaults, hadDraft: false };
-      const parsed = parseWizardDraft(raw, LIMITS, maxStep);
-      if (!parsed) return { step: 0, form: mergedDefaults, hadDraft: false };
-      return { step: parsed.step, form: { ...mergedDefaults, ...parsed.form }, hadDraft: true };
-    } catch {
-      return { step: 0, form: mergedDefaults, hadDraft: false };
-    }
-  }, [mergedDefaults, props.draftKey, maxStep]);
-
-  const [step, setStep] = useState(initialState.step);
-  const [showDraftBanner, setShowDraftBanner] = useState(initialState.hadDraft);
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
   const [isOtherIndustry, setIsOtherIndustry] = useState(false);
   const [tipIndex, setTipIndex] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(false);
-  const saveTimer = useRef<number | null>(null);
-  const startedAtRef = useRef<number>(Date.now());
-  const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
 
   const {
     register,
@@ -158,8 +143,23 @@ export default function WizardCore(props: WizardCoreProps) {
     formState: { errors },
   } = useForm<BriefForm>({
     resolver: zodResolverMemo,
-    defaultValues: initialState.form,
+    defaultValues: mergedDefaults,
     mode: "onTouched",
+  });
+
+  const {
+    initialState,
+    step,
+    setStep,
+    showDraftBanner,
+    clearStoredDraft,
+  } = useWizardDraft({
+    draftKey: props.draftKey,
+    mergedDefaults,
+    maxStep,
+    limits: LIMITS as unknown as Record<string, { min: number; max: number }>,
+    watch: (cb) => watch(cb),
+    getValues,
   });
 
   const [selectionState, setSelectionState] = useState<SelectionState>(() => {
@@ -180,9 +180,6 @@ export default function WizardCore(props: WizardCoreProps) {
   });
 
   function showField(step: StepId, key: keyof BriefForm): boolean {
-    if (step === "volume") {
-      return (["num_posts", "num_image_designs", "num_video_prompts", "email"] as const).some((k) => k === key);
-    }
     const keys = stepFieldMap[step] ?? STEP_FIELDS[step];
     if (!keys.length) return true;
     return keys.includes(key);
@@ -197,59 +194,19 @@ export default function WizardCore(props: WizardCoreProps) {
   }, []);
 
   useEffect(() => {
-    const sub = watch(() => {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = window.setTimeout(() => {
-        try {
-          const form = getValues();
-          if (!isWizardDirty(form, step, LIMITS)) {
-            localStorage.removeItem(props.draftKey);
-            return;
-          }
-          localStorage.setItem(props.draftKey, JSON.stringify({ step, form }));
-        } catch {
-          // ignore
-        }
-      }, 400);
-    });
-    return () => {
-      sub.unsubscribe();
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-    };
-  }, [watch, getValues, step, props.draftKey]);
+    reset(initialState.form);
+  }, [initialState.form, reset]);
 
-  useEffect(() => {
-    if (!loading || reduceMotion) return;
-    const id = window.setInterval(() => setTipIndex((i) => (i + 1) % WAITING_STAGES.length), 4500);
-    return () => clearInterval(id);
-  }, [loading, reduceMotion]);
-
-  useEffect(() => {
-    emitWizardEvent({
-      name: "wizard_started",
-      wizard_type: wizardType,
-      draft_key: props.draftKey,
-      restored_draft: initialState.hadDraft,
-      elapsed_time_ms: 0,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const current = props.stepOrder[step];
-    emitWizardEvent({
-      name: "wizard_step_viewed",
-      wizard_type: wizardType,
-      draft_key: props.draftKey,
-      step_index: step,
-      step_id: current,
-      total_steps: maxStep + 1,
-      elapsed_time_ms: Date.now() - startedAtRef.current,
-    });
-  }, [step, props.draftKey, props.stepOrder, maxStep, wizardType]);
+  const telemetry = useWizardTelemetry({
+    wizardType,
+    draftKey: props.draftKey,
+    step,
+    stepOrder: props.stepOrder,
+    maxStep,
+    restoredDraft: initialState.hadDraft,
+  });
 
   const clearDraft = () => {
-    localStorage.removeItem(props.draftKey);
     reset(mergedDefaults);
     setSelectionState({
       mainGoalSelected: "",
@@ -262,7 +219,7 @@ export default function WizardCore(props: WizardCoreProps) {
       platformsOther: "",
     });
     setStep(0);
-    setShowDraftBanner(false);
+    clearStoredDraft();
   };
 
   const toggleListValue = (list: readonly string[], value: string): string[] =>
@@ -302,71 +259,56 @@ export default function WizardCore(props: WizardCoreProps) {
     if (keys.length) {
       const ok = await trigger([...keys]);
       if (!ok) {
-        emitWizardEvent({
+        telemetry.emit({
           name: "wizard_step_validation_failed",
           wizard_type: wizardType,
           draft_key: props.draftKey,
           step_index: step,
           step_id: current,
           validation_state: "failed",
-          elapsed_time_ms: Date.now() - startedAtRef.current,
+          elapsed_time_ms: telemetry.getElapsedMs(),
         });
         return;
       }
     }
-    emitWizardEvent({
+    telemetry.emit({
       name: "wizard_step_next_clicked",
       wizard_type: wizardType,
       draft_key: props.draftKey,
       step_index: step,
       step_id: current,
       validation_state: "passed",
-      elapsed_time_ms: Date.now() - startedAtRef.current,
+      elapsed_time_ms: telemetry.getElapsedMs(),
     });
     setStep((s) => Math.min(maxStep, s + 1));
   };
 
-  const onValidSubmit = async (form: BriefForm) => {
-    setErr(null);
-    setLoading(true);
-    emitWizardEvent({
-      name: "wizard_generate_clicked",
-      wizard_type: wizardType,
-      draft_key: props.draftKey,
-      step_index: step,
-      step_id: props.stepOrder[step],
-      elapsed_time_ms: Date.now() - startedAtRef.current,
-    });
-    try {
-      const payload = {
-        ...form,
-        num_posts: clamp(form.num_posts, LIMITS.num_posts.min, LIMITS.num_posts.max),
-        num_image_designs: clamp(form.num_image_designs, LIMITS.num_image_designs.min, LIMITS.num_image_designs.max),
-        num_video_prompts: clamp(form.num_video_prompts, LIMITS.num_video_prompts.min, LIMITS.num_video_prompts.max),
-      };
-      const kit = await generateKit(payload, idempotencyKey);
-      localStorage.removeItem(props.draftKey);
-      emitWizardEvent({
-        name: "kit_created_success",
-        wizard_type: wizardType,
-        draft_key: props.draftKey,
-        kit_id: kit.id,
-        elapsed_time_ms: Date.now() - startedAtRef.current,
-      });
-      nav(`/kits/${kit.id}`);
-    } catch (e) {
-      setErr(String(e));
-      emitWizardEvent({
-        name: "kit_created_failed",
-        wizard_type: wizardType,
-        draft_key: props.draftKey,
-        error: String(e),
-        elapsed_time_ms: Date.now() - startedAtRef.current,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const submission = useWizardSubmission({
+    draftKey: props.draftKey,
+    wizardType,
+    step,
+    stepOrder: props.stepOrder,
+    createIdempotencyKey: () => crypto.randomUUID(),
+    clearDraft: () => localStorage.removeItem(props.draftKey),
+    navigateToKit: (kitId) => nav(`/kits/${kitId}`),
+    clampCounts: (form) => ({
+      ...form,
+      num_posts: clamp(form.num_posts, LIMITS.num_posts.min, LIMITS.num_posts.max),
+      num_image_designs: clamp(form.num_image_designs, LIMITS.num_image_designs.min, LIMITS.num_image_designs.max),
+      num_video_prompts: clamp(form.num_video_prompts, LIMITS.num_video_prompts.min, LIMITS.num_video_prompts.max),
+    }),
+    emit: telemetry.emit,
+    getElapsedMs: telemetry.getElapsedMs,
+  });
+  const onValidSubmit = submission.onValidSubmit;
+  const loading = submission.loading;
+  const err = submission.error;
+
+  useEffect(() => {
+    if (!loading || reduceMotion) return;
+    const id = window.setInterval(() => setTipIndex((i) => (i + 1) % WAITING_STAGES.length), 4500);
+    return () => clearInterval(id);
+  }, [loading, reduceMotion]);
 
   const currentStep = props.stepOrder[step]!;
   const isFinalStep = step === maxStep;
@@ -400,32 +342,15 @@ export default function WizardCore(props: WizardCoreProps) {
         <div className={cn("wizard-body-wrap relative !rounded-3xl", loading && "wizard-body-wrap--loading")}>
           <div className="wizard-body p-4 sm:p-6 md:p-8">
             {canShowValuePreview && (
-              <div className="mb-5 rounded-xl border border-secondary/30 bg-secondary/10 p-4">
-                <p className="text-[11px] font-bold uppercase tracking-wide text-secondary">Early value preview</p>
-                <h3 className="mt-1 text-sm font-semibold text-on-surface">
-                  You are building a {wizardType} kit for {brandNameValue}
-                </h3>
-                <p className="mt-1 text-xs text-on-surface-variant">
-                  Industry: {industryValue}. Primary direction: {(mainGoalValue || audienceValue || "audience-led growth").slice(0, 120)}.
-                </p>
-              </div>
+              <WizardValuePreview
+                wizardType={wizardType}
+                brandName={String(brandNameValue ?? "")}
+                industry={String(industryValue ?? "")}
+                direction={String(mainGoalValue || audienceValue || "audience-led growth")}
+              />
             )}
 
-            <div className="mb-6 flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:mb-8 sm:flex-wrap sm:overflow-visible">
-              {props.stepOrder.map((id, i) => (
-                <span
-                  key={id}
-                  className={cn(
-                    "whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition",
-                    i === step
-                      ? "border-primary/30 bg-primary/20 text-primary dark:border-brand-primary/45 dark:bg-brand-primary/15 dark:text-brand-darkText"
-                      : "border-transparent bg-surface-container-lowest text-on-surface-variant dark:bg-earth-darkBg/55 dark:text-brand-darkText/70"
-                  )}
-                >
-                  {i + 1}. {props.stepTitles[id]}
-                </span>
-              ))}
-            </div>
+            <WizardStepChips stepOrder={props.stepOrder} currentStep={step} stepTitles={props.stepTitles} />
 
             {currentStep === "brand" && (
                 <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">

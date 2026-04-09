@@ -9,7 +9,7 @@ import { isUseMetaPrompt } from "./promptModeEnv.js";
 import { campaignModeInstructionBlock } from "./campaignMode.js";
 import { buildClientContextBlock, buildMetaPromptBlock, buildOutputPolicyBlock, composePrompt } from "./promptComposer.js";
 import { getGeminiResponseSchema } from "./responseSchema.js";
-import { getRegenerateItemSchema, getSectionArray } from "../routes/kits.js";
+import { getRegenerateItemSchema, getSectionArray } from "../services/kitGenerationService.js";
 
 describe("parse", () => {
   it("sanitizes counts", () => {

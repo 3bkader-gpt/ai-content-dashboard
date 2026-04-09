@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, Link, Outlet } from "react-router-dom";
 
 function navClass(isActive: boolean) {
@@ -10,6 +11,22 @@ function navClass(isActive: boolean) {
 }
 
 export default function AdminLayout() {
+  const [themeMode, setThemeMode] = useState<"light" | "dark">(() =>
+    document.documentElement.classList.contains("dark") ? "dark" : "light"
+  );
+
+  const toggleTheme = () => {
+    const next = themeMode === "dark" ? "light" : "dark";
+    setThemeMode(next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+    document.documentElement.setAttribute("data-theme", next);
+    try {
+      localStorage.setItem("theme_mode", next);
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <div className="min-h-screen bg-surface text-on-surface dark:bg-earth-darkBg dark:text-brand-darkText">
       <header className="sticky top-0 z-30 border-b border-outline/20 bg-surface/80 backdrop-blur dark:border-brand-muted/35 dark:bg-earth-darkBg/80">
@@ -19,23 +36,35 @@ export default function AdminLayout() {
             <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">Admin Console</p>
           </div>
 
-          <nav className="flex items-center gap-1" aria-label="Admin navigation">
-            <NavLink to="/admin/prompt-catalog" className={({ isActive }) => navClass(isActive)}>
-              Prompt Catalog
-            </NavLink>
-            <NavLink to="/admin/analytics" className={({ isActive }) => navClass(isActive)}>
-              Analytics
-            </NavLink>
-            <NavLink to="/admin/generated-kits" className={({ isActive }) => navClass(isActive)}>
-              Kits Review
-            </NavLink>
-            <Link
-              to="/wizard"
-              className="rounded-lg border border-outline/30 px-3 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="inline-flex items-center gap-2 rounded-lg border border-outline/30 bg-surface-container-high px-3 py-2 text-xs font-bold text-on-surface transition hover:bg-surface-container-highest focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface dark:border-brand-muted/40 dark:bg-earth-darkCard dark:text-brand-darkText"
+              aria-label="Toggle theme"
+              title={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
             >
-              Open User App
-            </Link>
-          </nav>
+              <span className="material-symbols-outlined text-sm">{themeMode === "dark" ? "light_mode" : "dark_mode"}</span>
+              <span className="hidden sm:inline">{themeMode === "dark" ? "Light" : "Dark"}</span>
+            </button>
+            <nav className="flex items-center gap-1" aria-label="Admin navigation">
+              <NavLink to="/admin/prompt-catalog" className={({ isActive }) => navClass(isActive)}>
+                Prompt Catalog
+              </NavLink>
+              <NavLink to="/admin/analytics" className={({ isActive }) => navClass(isActive)}>
+                Analytics
+              </NavLink>
+              <NavLink to="/admin/generated-kits" className={({ isActive }) => navClass(isActive)}>
+                Kits Review
+              </NavLink>
+              <Link
+                to="/wizard"
+                className="rounded-lg border border-outline/30 px-3 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+              >
+                Open User App
+              </Link>
+            </nav>
+          </div>
         </div>
       </header>
 
