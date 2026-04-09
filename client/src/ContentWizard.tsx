@@ -20,7 +20,7 @@ export default function ContentWizard() {
           </div>
           <h2 className="mb-4 font-headline text-4xl font-black leading-tight tracking-tight text-on-surface md:text-5xl">
             Choose your{" "}
-            <span className="bg-gradient-to-r from-primary via-tertiary to-secondary bg-clip-text text-transparent">content path</span>
+            <span className="text-primary">content path</span>
           </h2>
           <p className="text-lg font-light leading-relaxed text-on-surface-variant md:text-xl">
             Each card opens a different wizard experience with different field order, copy, and defaults.
@@ -37,7 +37,7 @@ export default function ContentWizard() {
             <button
               type="button"
               onClick={() => nav("/wizard/social")}
-              className="rounded-xl bg-gradient-to-r from-primary to-primary-container px-5 py-3 text-sm font-bold text-on-primary-container transition hover:opacity-95"
+              className="rounded-xl bg-primary px-5 py-3 text-sm font-bold text-on-primary transition hover:opacity-95"
             >
               Start now (recommended)
             </button>
@@ -115,11 +115,11 @@ export default function ContentWizard() {
                   "group/btn flex w-full items-center justify-center gap-2 rounded-xl py-4 font-bold transition duration-300",
                   "focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
                   c.accent === "primary" &&
-                    "bg-surface-container-highest text-on-surface hover:bg-gradient-to-r hover:from-primary hover:to-primary-container hover:text-on-primary",
+                    "bg-surface-container-highest text-on-surface hover:bg-primary hover:text-on-primary",
                   c.accent === "tertiary" &&
-                    "bg-surface-container-highest text-on-surface hover:bg-gradient-to-r hover:from-tertiary hover:to-tertiary-container hover:text-on-tertiary",
+                    "bg-surface-container-highest text-on-surface hover:bg-tertiary hover:text-on-tertiary",
                   c.accent === "secondary" &&
-                    "bg-surface-container-highest text-on-surface hover:bg-gradient-to-r hover:from-secondary hover:to-secondary-container hover:text-on-secondary"
+                    "bg-surface-container-highest text-on-surface hover:bg-secondary hover:text-on-secondary"
                 )}
               >
                 {c.cta}

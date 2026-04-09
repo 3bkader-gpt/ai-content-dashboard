@@ -70,7 +70,7 @@ export default function AnalyticsPage() {
           <h2 className="headline mb-6 text-xl font-bold">Engagement pulse</h2>
           <div className="flex h-48 items-end gap-2">
             {[40, 65, 45, 80, 55, 90, 70].map((h, i) => (
-              <div key={i} className="flex-1 rounded-t-lg bg-gradient-to-t from-primary/40 to-primary/10" style={{ height: `${h}%` }} />
+              <div key={i} className="flex-1 rounded-t-lg bg-primary/40" style={{ height: `${h}%` }} />
             ))}
           </div>
           <p className="mt-4 text-sm text-on-surface-variant">Decorative chart — connect metrics when available.</p>
@@ -87,7 +87,7 @@ export default function AnalyticsPage() {
               <span className="font-bold text-primary">Stable</span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-surface-container-highest">
-              <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-tertiary to-primary" />
+              <div className="h-full w-3/4 rounded-full bg-primary" />
             </div>
           </div>
         </div>

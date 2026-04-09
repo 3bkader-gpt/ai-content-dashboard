@@ -181,7 +181,7 @@ export default function GlobalSearchOverlay({
                         }}
                         className="group relative flex cursor-pointer items-center gap-4 rounded-2xl border border-transparent bg-surface-container-high/40 p-4 transition-all hover:border-primary/20 hover:bg-surface-container-highest focus-visible:ring-2 focus-visible:ring-primary/40 dark:bg-earth-darkCard/70 dark:hover:bg-earth-darkCard"
                       >
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-container dark:from-brand-primary dark:to-brand-accent">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
                           <span className="material-symbols-outlined text-2xl text-on-primary">auto_fix_high</span>
                         </div>
                         <div className="flex-1">

@@ -16,7 +16,7 @@ function briefBrand(json: string): string {
 }
 
 const btnPrimary =
-  "inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-container px-5 py-3 font-semibold text-on-primary-container shadow-lg transition hover:shadow-[0_0_20px_rgb(var(--c-primary)/0.35)] focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50 dark:from-brand-primary dark:to-brand-accent dark:text-brand-darkText";
+  "inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-on-primary shadow-lg transition hover:shadow-[0_0_20px_rgb(var(--c-primary)/0.35)] focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50";
 const btnSecondary =
   "inline-flex items-center gap-2 rounded-xl border border-outline/30 bg-surface-container-high px-5 py-3 font-semibold text-on-surface transition hover:bg-surface-container-highest focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50 dark:border-brand-muted/45 dark:bg-earth-darkCard dark:text-brand-darkText";
 const btnGhost =

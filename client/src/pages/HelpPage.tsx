@@ -62,7 +62,7 @@ export default function HelpPage() {
       <section className="mx-auto mb-12 max-w-5xl text-center md:mb-16">
         <h1 className="headline mb-5 text-3xl font-black tracking-tight text-on-surface sm:text-4xl md:mb-6 md:text-6xl">
           How can we{" "}
-          <span className="bg-gradient-to-r from-tertiary to-primary bg-clip-text text-transparent dark:from-brand-sand dark:to-brand-primary">illuminate</span> your
+          <span className="text-primary">illuminate</span> your
           journey?
         </h1>
         <p className="mx-auto mb-8 max-w-2xl text-base text-on-surface-variant dark:text-brand-darkText/80 md:mb-10 md:text-lg">
@@ -114,7 +114,7 @@ export default function HelpPage() {
           </div>
         ))}
 
-        <div className="glass-panel flex flex-col items-center justify-center rounded-[1.5rem] border-none bg-gradient-to-br from-surface-container-high to-surface-container p-6 sm:p-8 text-center dark:from-earth-darkCard dark:to-earth-darkBg">
+        <div className="glass-panel flex flex-col items-center justify-center rounded-[1.5rem] border-none bg-surface-container p-6 sm:p-8 text-center">
           <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-secondary-container/20 text-secondary">
             <span className="material-symbols-outlined text-4xl">support_agent</span>
           </div>
@@ -122,7 +122,7 @@ export default function HelpPage() {
           <p className="mb-6 text-sm text-on-surface-variant dark:text-brand-darkText/75">Our senior architects are available for high-tier support requests.</p>
           <button
             type="button"
-            className="w-full rounded-xl bg-gradient-to-r from-primary to-primary-container py-4 font-black tracking-tight text-on-primary-container transition-all hover:scale-[1.02] active:scale-95 dark:from-brand-primary dark:to-brand-accent dark:text-brand-darkText"
+            className="w-full rounded-xl bg-primary py-4 font-black tracking-tight text-on-primary transition-all hover:scale-[1.02] active:scale-95"
           >
             CONTACT SUPPORT
           </button>

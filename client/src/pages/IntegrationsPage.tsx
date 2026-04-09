@@ -26,7 +26,7 @@ export default function IntegrationsPage() {
         </div>
         <button
           type="button"
-          className="rounded-xl bg-gradient-to-r from-primary to-primary-container px-6 py-3 font-bold text-on-primary-container shadow-lg shadow-primary/20 transition-opacity hover:opacity-90"
+          className="rounded-xl bg-primary px-6 py-3 font-bold text-on-primary shadow-lg shadow-primary/20 transition-opacity hover:opacity-90"
         >
           Request integration
         </button>
@@ -38,7 +38,7 @@ export default function IntegrationsPage() {
             key={it.name}
             className="glass-panel group relative overflow-hidden rounded-2xl border border-outline-variant/25 p-6 transition-all hover:border-primary/30"
           >
-            <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${it.color}`}>
+            <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary`}>
               <span className="material-symbols-outlined text-2xl text-on-primary">{it.icon}</span>
             </div>
             <div className="mb-1 flex items-center justify-between gap-2">

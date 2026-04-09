@@ -129,7 +129,7 @@ export default function BrandVoicePage() {
         <button
           type="button"
           disabled={loading || saving}
-          className="mt-4 rounded-xl bg-gradient-to-r from-primary to-primary-container px-6 py-3 font-bold text-on-primary-container hover:opacity-90 disabled:opacity-50"
+          className="mt-4 rounded-xl bg-primary px-6 py-3 font-bold text-on-primary hover:opacity-90 disabled:opacity-50"
           onClick={() => {
             setSaving(true);
             setMessage(null);

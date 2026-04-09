@@ -148,7 +148,7 @@ export default function GeneratedKitsPage({ adminMode = false }: { adminMode?: b
                         <div className={"flex items-center " + (compactTable ? "gap-3" : "gap-4")}>
                           <div
                             className={
-                              "flex items-center justify-center rounded-lg border border-tertiary/35 bg-gradient-to-br from-tertiary/30 to-tertiary/10 " +
+                              "flex items-center justify-center rounded-lg border border-tertiary/35 bg-tertiary/30 " +
                               avSize
                             }
                           >

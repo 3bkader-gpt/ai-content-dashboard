@@ -223,7 +223,7 @@ export default function AppLayout({
           {icon("close")}
         </button>
         <div className="mb-10 px-4">
-          <h1 className="bg-gradient-to-r from-primary to-tertiary bg-clip-text font-headline text-2xl font-bold tracking-tighter text-transparent">
+          <h1 className="font-headline text-2xl font-bold tracking-tighter text-primary">
             Social Geni
           </h1>
           <p className="mt-1 font-manrope text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant dark:text-brand-darkText/75">
@@ -247,7 +247,7 @@ export default function AppLayout({
         <div className="mt-auto space-y-2 border-t border-outline/25 pt-6">
           <Link
             to="/wizard"
-            className="mb-6 block w-full scale-[1.02] rounded-xl bg-gradient-to-r from-primary to-primary-container py-3 text-center font-headline font-bold text-on-primary-container shadow-lg shadow-primary-container/20 transition-opacity hover:opacity-90 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface dark:from-brand-primary dark:to-primary"
+            className="mb-6 block w-full scale-[1.02] rounded-xl bg-primary py-3 text-center font-headline font-bold text-on-primary shadow-lg shadow-primary-container/20 transition-opacity hover:opacity-90 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           >
             Create new Kit
           </Link>
@@ -455,7 +455,7 @@ export default function AppLayout({
                 <p className="font-manrope text-sm font-bold text-on-surface">{profileName}</p>
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant dark:text-brand-darkText/75">Social Geni</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary-container/40 font-headline text-sm font-bold text-on-primary-container ring-2 ring-primary/30 dark:from-brand-primary/30 dark:to-brand-accent/30 dark:text-brand-darkText">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20 font-headline text-sm font-bold text-on-primary ring-2 ring-primary/30">
                 {(profileName.trim().slice(0, 2) || "AI").toUpperCase()}
               </div>
             </button>
