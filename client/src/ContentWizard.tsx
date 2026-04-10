@@ -15,21 +15,21 @@ export default function ContentWizard() {
     () => [
       {
         icon: "hub",
-        title: "Social campaign",
+        title: "Social Campaign",
         desc: "Social-first flow for audience growth, platform mix, and post output planning.",
         accent: "primary" as const,
         path: "/wizard/social",
       },
       {
         icon: "shopping_bag",
-        title: "Offer & product",
+        title: "Offer Campaign",
         desc: "Conversion-focused flow for offer positioning, CTA strength, and sales messaging.",
         accent: "tertiary" as const,
         path: "/wizard/offer",
       },
       {
         icon: "article",
-        title: "Deep content",
+        title: "Deep Campaign",
         desc: "Depth-focused flow for richer editorial/video directions and structured narrative output.",
         accent: "secondary" as const,
         path: "/wizard/deep",
