@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { postExtrasWaitlist } from "../api";
-import PrimaryFlowBanner from "../components/PrimaryFlowBanner";
 
 const tools = [
   {
@@ -38,7 +37,6 @@ export default function ExtrasPage() {
 
   return (
     <>
-      <PrimaryFlowBanner />
       <div className="mb-10">
         <h1 className="headline text-4xl font-black tracking-tight text-on-surface md:text-5xl">Future tools</h1>
         <p className="mt-2 max-w-2xl text-on-surface-variant">

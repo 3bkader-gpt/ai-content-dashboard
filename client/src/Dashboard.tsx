@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { listKits } from "./api";
 import type { KitSummary } from "./types";
 import { useToast } from "./useToast";
-import PrimaryFlowBanner from "./components/PrimaryFlowBanner";
 import { statusKind } from "./kitUiFormatters";
 import { logger } from "./logger";
 
@@ -109,8 +108,6 @@ export default function Dashboard() {
           </div>
         </div>
       </section>
-
-      <PrimaryFlowBanner className="mb-8" />
 
       <section className="mb-12 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
         <div className="group relative overflow-hidden rounded-3xl border border-brand-sand/30 bg-earth-card p-8 transition-transform duration-500 hover:scale-[1.01] dark:border-outline/30 dark:bg-surface-container-low">

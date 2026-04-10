@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getProfile, updateProfile } from "../api";
-import PrimaryFlowBanner from "../components/PrimaryFlowBanner";
 
 export default function ProfilePage() {
   const [displayName, setDisplayName] = useState("");
@@ -23,7 +22,6 @@ export default function ProfilePage() {
 
   return (
     <>
-      <PrimaryFlowBanner />
       <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/40 to-primary-container/50 font-headline text-xl font-bold text-on-primary-container ring-2 ring-primary/30">

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { getHelpTopics, type HelpTopicsResponse } from "../api";
-import PrimaryFlowBanner from "../components/PrimaryFlowBanner";
 
 const empty: HelpTopicsResponse = { resources: [], faq: [], last_updated: "" };
 
@@ -52,7 +51,6 @@ export default function HelpPage() {
 
   return (
     <>
-      <PrimaryFlowBanner />
       {err && (
         <p className="mx-auto mb-6 max-w-3xl rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-sm text-error" role="alert">
           {err}

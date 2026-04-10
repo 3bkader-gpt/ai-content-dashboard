@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { getBrandVoice, updateBrandVoice, type BrandVoicePillar } from "../api";
-import PrimaryFlowBanner from "../components/PrimaryFlowBanner";
 
 export default function BrandVoicePage() {
   const [pillars, setPillars] = useState<BrandVoicePillar[]>([]);
@@ -24,7 +23,6 @@ export default function BrandVoicePage() {
 
   return (
     <>
-      <PrimaryFlowBanner />
       <div className="mb-10">
         <h1 className="headline text-4xl font-black tracking-tight text-on-surface md:text-5xl">Brand voice guidelines</h1>
         <p className="mt-2 max-w-2xl text-on-surface-variant">

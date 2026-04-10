@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { listKits } from "../api";
 import type { KitSummary } from "../types";
-import PrimaryFlowBanner from "../components/PrimaryFlowBanner";
 
 function statusKind(badge: string): "done" | "running" | "failed" {
   const b = badge.toLowerCase();
@@ -36,7 +35,6 @@ export default function AnalyticsPage() {
 
   return (
     <>
-      <PrimaryFlowBanner />
       <div className="mb-10">
         <h1 className="headline text-4xl font-black tracking-tight text-on-surface md:text-5xl">Neural Analytics</h1>
         <p className="mt-2 max-w-2xl text-on-surface-variant">
