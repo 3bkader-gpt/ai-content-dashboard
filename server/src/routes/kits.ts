@@ -97,16 +97,25 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
   });
 
   app.get("/api/kits", async (c) => {
+    const scopeAll = c.req.query("scope") === "all";
+    if (scopeAll) {
+      return c.json(await listKitsService());
+    }
     const device = requireDeviceId(c);
     if (!device.ok) return device.response;
     return c.json(await listKitsService(device.deviceId));
   });
 
   app.get("/api/kits/:id", async (c) => {
-    const device = requireDeviceId(c);
-    if (!device.ok) return device.response;
+    const scopeAll = c.req.query("scope") === "all";
+    let deviceId: string | undefined;
+    if (!scopeAll) {
+      const device = requireDeviceId(c);
+      if (!device.ok) return device.response;
+      deviceId = device.deviceId;
+    }
     try {
-      return c.json(await getKitByIdService(c.req.param("id"), device.deviceId));
+      return c.json(await getKitByIdService(c.req.param("id"), deviceId));
     } catch (err) {
       return respondHttpError(c, err, "Unexpected error while loading kit.");
     }

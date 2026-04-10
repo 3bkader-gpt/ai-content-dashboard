@@ -18,7 +18,7 @@ import {
   pruneExpiredIdempotency,
   reserveIdempotencyKey,
 } from "./idempotencyService.js";
-import { getKitById, listKits, persistKit, serializeKit, updateKit } from "./kitRepository.js";
+import { getKitById, getKitByIdAny, listAllKits, listKits, persistKit, serializeKit, updateKit } from "./kitRepository.js";
 import {
   getRegenerateItemSchema,
   getSectionArray,
@@ -458,12 +458,13 @@ export async function regenerateKitItemService(input: {
   return { status: 200, body: serializeKit(updated[0]!) };
 }
 
-export async function listKitsService(deviceId: string) {
+export async function listKitsService(deviceId?: string) {
+  if (!deviceId) return listAllKits(withDeps().db);
   return listKits(withDeps().db, deviceId);
 }
 
-export async function getKitByIdService(id: string, deviceId: string) {
-  const row = await getKitById(withDeps().db, id, deviceId);
+export async function getKitByIdService(id: string, deviceId?: string) {
+  const row = deviceId ? await getKitById(withDeps().db, id, deviceId) : await getKitByIdAny(withDeps().db, id);
   if (!row) throw new HttpError(404, "Not found");
   return serializeKit(row);
 }

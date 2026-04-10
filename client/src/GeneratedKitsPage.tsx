@@ -22,10 +22,10 @@ export default function GeneratedKitsPage({ adminMode = false }: { adminMode?: b
   const avSize = compactTable ? "h-8 w-8 text-[10px]" : "h-10 w-10 text-sm";
 
   useEffect(() => {
-    listKits()
+    listKits(adminMode)
       .then(setKits)
       .catch((e) => setErr(String(e)));
-  }, []);
+  }, [adminMode]);
 
   const latestKits = useMemo(() => (kits?.length ? kits.slice(0, 5) : []), [kits]);
   const kitDetailsBase = adminMode ? "/admin/kits/" : "/kits/";

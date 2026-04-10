@@ -48,10 +48,10 @@ export default function KitDetail({ showTechnical = false }: { showTechnical?: b
     if (!id) return;
     setConflict(false);
     setErr(null);
-    getKit(id)
+    getKit(id, showTechnical)
       .then(setKit)
       .catch(() => setErr("Not found"));
-  }, [id]);
+  }, [id, showTechnical]);
 
   useEffect(() => {
     refreshKit();
@@ -101,7 +101,7 @@ export default function KitDetail({ showTechnical = false }: { showTechnical?: b
     return (
       <div className="glass-panel rounded-3xl border border-outline/30 p-8 text-on-surface">
         <p className="mb-4">{err ?? "—"}</p>
-        <Link to="/generated-kits" className={btnGhost + " inline-flex items-center gap-1"}>
+        <Link to={showTechnical ? "/admin/generated-kits" : "/generated-kits"} className={btnGhost + " inline-flex items-center gap-1"}>
           <span className="material-symbols-outlined text-lg">arrow_back</span>
           Back to generated kits
         </Link>
@@ -174,7 +174,7 @@ export default function KitDetail({ showTechnical = false }: { showTechnical?: b
       <div className="mb-8 flex flex-col gap-5 md:mb-10 md:gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <nav className="mb-3 flex flex-wrap items-center gap-2 text-xs text-on-surface-variant dark:text-brand-darkText/75">
-            <Link to="/generated-kits" className="hover:text-on-surface">
+            <Link to={showTechnical ? "/admin/generated-kits" : "/generated-kits"} className="hover:text-on-surface">
               Generated kits
             </Link>
             <span className="material-symbols-outlined text-[14px]">chevron_right</span>

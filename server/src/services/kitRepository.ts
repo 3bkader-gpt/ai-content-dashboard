@@ -119,11 +119,30 @@ export async function listKits(db: any, deviceId: string) {
   return rows.map(serializeKit);
 }
 
+export async function listAllKits(db: any) {
+  const rows = await db
+    .select()
+    .from(kits)
+    .orderBy(desc(kits.createdAt))
+    .limit(200);
+  return rows.map(serializeKit);
+}
+
 export async function getKitById(db: any, id: string, deviceId: string) {
   const row = (await db
     .select()
     .from(kits)
     .where(and(eq(kits.id, id), eq(kits.deviceId, deviceId)))
+    .limit(1))[0];
+  if (!row) return null;
+  return row;
+}
+
+export async function getKitByIdAny(db: any, id: string) {
+  const row = (await db
+    .select()
+    .from(kits)
+    .where(eq(kits.id, id))
     .limit(1))[0];
   if (!row) return null;
   return row;

@@ -11,14 +11,16 @@ export async function generateKit(brief: BriefForm, idempotencyKey: string): Pro
   return res.json() as Promise<KitSummary>;
 }
 
-export async function listKits(): Promise<KitSummary[]> {
-  const res = await fetch(apiUrl("/api/kits"), { headers: buildHeaders() });
+export async function listKits(adminMode = false): Promise<KitSummary[]> {
+  const qs = adminMode ? "?scope=all" : "";
+  const res = await fetch(apiUrl(`/api/kits${qs}`), { headers: buildHeaders() });
   if (!res.ok) throw new ApiError(await parseErrorMessage(res, "Failed to list kits"), res.status);
   return res.json() as Promise<KitSummary[]>;
 }
 
-export async function getKit(id: string): Promise<KitSummary> {
-  const res = await fetch(apiUrl(`/api/kits/${id}`), { headers: buildHeaders() });
+export async function getKit(id: string, adminMode = false): Promise<KitSummary> {
+  const qs = adminMode ? "?scope=all" : "";
+  const res = await fetch(apiUrl(`/api/kits/${id}${qs}`), { headers: buildHeaders() });
   if (!res.ok) throw new ApiError(await parseErrorMessage(res, "Not found"), res.status);
   return res.json() as Promise<KitSummary>;
 }
