@@ -152,8 +152,9 @@ export function buildOutputPolicyBlock(mode: CampaignMode): string {
     "For every social post and media caption, you MUST provide two equivalent versions in meaning: local Arabic (`_ar`) and professional English (`_en`).",
     "CRITICAL: DO NOT include Arabic typography, text overlays, or lettering inside image prompts or video scene visuals. Visuals must be text-free.",
     "Spoken scripts and external captions can remain in Arabic.",
+    "Arabic for strategy & narrative (mandatory): Every string and every list item inside `marketing_strategy`, `sales_system`, `offer_optimization`, `diagnosis_plan`, `narrative_summary`, and (if present) `kpi_tracking` MUST be written in fluent Arabic (فصحى معاصرة أو لهجة مناسبة لجمهور البراند حسب نبرة البراند في البريف). Do not output those sections in English. Keep Latin only for unavoidable brand names, app names, or standard platform labels (e.g. TikTok, Instagram, Reels) when they are normally written that way.",
     "Return `diagnosis_plan` object with keys: `quickWin24h`, `focus7d`, `priority`, `rationale`.",
-    "Return `narrative_summary` as a short 2-4 line user-facing summary.",
+    "Return `narrative_summary` as a short 2-4 line user-facing summary in Arabic.",
     `Campaign mode: ${mode}. Keep style aligned with this mode while preserving factual clarity.`,
   ].join("\n");
 }
@@ -185,6 +186,7 @@ export function buildMetaPromptBlock(snapshot: SubmissionSnapshot): string {
       : "No visual reference image was provided. Infer the visual identity from client context only.",
     "",
     "Apply the deduced strategy directly in the generated assets.",
+    "Default language for strategic planning fields (marketing_strategy, sales_system, offer_optimization, diagnosis_plan, narrative_summary, kpi_tracking when returned) is Arabic; match the client's market and brand tone.",
     "Do not output reasoning, hidden analysis, or planning notes.",
   ].join("\n");
 }

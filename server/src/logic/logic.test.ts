@@ -129,6 +129,8 @@ describe("promptComposer", () => {
     expect(block).toContain("caption_en");
     expect(block).toContain("diagnosis_plan");
     expect(block).toContain("narrative_summary");
+    expect(block).toContain("marketing_strategy");
+    expect(block).toContain("Arabic for strategy");
   });
 
   it("client context block includes requested counts", () => {
