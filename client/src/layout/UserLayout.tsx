@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 
 function linkClass(isActive: boolean) {
   return [
@@ -12,6 +13,7 @@ function linkClass(isActive: boolean) {
 }
 
 export default function UserLayout({ demoBanner }: { demoBanner?: ReactNode }) {
+  const { entitlements, session, signInWithGoogle, signOut } = useAuth();
   const [themeMode, setThemeMode] = useState<"light" | "dark">(() =>
     document.documentElement.classList.contains("dark") ? "dark" : "light"
   );
@@ -36,6 +38,28 @@ export default function UserLayout({ demoBanner }: { demoBanner?: ReactNode }) {
             Social Geni
           </Link>
           <div className="flex items-center gap-2">
+            <span className="hidden rounded-lg border border-outline/25 bg-surface-container-high px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant sm:inline-flex">
+              Plan: {entitlements?.plan_code ?? "free"}
+            </span>
+            {session ? (
+              <button
+                type="button"
+                onClick={() => void signOut()}
+                className="inline-flex items-center gap-2 rounded-lg border border-outline/30 bg-surface-container-high px-3 py-2 text-xs font-bold text-on-surface transition hover:bg-surface-container-highest focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              >
+                <span className="material-symbols-outlined text-sm">logout</span>
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => void signInWithGoogle()}
+                className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-bold text-primary transition hover:bg-primary/20 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              >
+                <span className="material-symbols-outlined text-sm">login</span>
+                <span className="hidden sm:inline">Sign in</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={toggleTheme}
@@ -55,6 +79,9 @@ export default function UserLayout({ demoBanner }: { demoBanner?: ReactNode }) {
             </NavLink>
             <NavLink to="/generated-kits" className={({ isActive }) => linkClass(isActive)}>
               Kits
+            </NavLink>
+            <NavLink to="/pricing" className={({ isActive }) => linkClass(isActive)}>
+              Pricing
             </NavLink>
             </nav>
           </div>
