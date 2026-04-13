@@ -48,7 +48,7 @@ describe("kits routes device header enforcement", () => {
     });
 
     expect(res.status).toBe(200);
-    expect(listKitsService).toHaveBeenCalledWith(deviceId);
+    expect(listKitsService).toHaveBeenCalledWith({ deviceId, userId: null });
   });
 
   it("passes valid device id into generate service", async () => {
@@ -84,7 +84,7 @@ describe("kits routes device header enforcement", () => {
     });
 
     expect(res.status).toBe(200);
-    expect(getKitByIdService).toHaveBeenCalledWith("k1", deviceId);
+    expect(getKitByIdService).toHaveBeenCalledWith("k1", { deviceId, userId: null });
   });
 });
 

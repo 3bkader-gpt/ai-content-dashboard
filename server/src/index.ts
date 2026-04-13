@@ -8,7 +8,10 @@ import { createKitsRouter } from "./routes/kits.js";
 import { createFeaturesRouter } from "./routes/features.js";
 import { createPromptCatalogRouter } from "./routes/promptCatalog.js";
 import { createAnalyticsRouter } from "./routes/analytics.js";
+import { createAuthRouter } from "./routes/auth.js";
+import { createAdminPlansRouter } from "./routes/adminPlans.js";
 import { bearerAuth } from "./middleware/auth.js";
+import { optionalSupabaseUser } from "./middleware/userAuth.js";
 import { rateLimit } from "./middleware/rateLimit.js";
 import { startIdempotencyCleanupJob } from "./services/kitGenerationService.js";
 import type { Context, Next } from "hono";
@@ -54,7 +57,9 @@ async function main() {
 
   async function kitsGuard(c: Context, next: Next) {
     return await rateLimit(c, async () => {
-      return await bearerAuth(c, next);
+      const authResult = await bearerAuth(c, async () => undefined);
+      if (authResult) return authResult;
+      return await optionalSupabaseUser(c, next);
     });
   }
 
@@ -62,11 +67,15 @@ async function main() {
   const featuresApp = createFeaturesRouter(kitsGuard);
   const promptCatalogApp = createPromptCatalogRouter(kitsGuard);
   const analyticsApp = createAnalyticsRouter();
+  const authApp = createAuthRouter(kitsGuard);
+  const adminPlansApp = createAdminPlansRouter();
 
   app.route("/", kitsApp);
   app.route("/api", featuresApp);
   app.route("/api", promptCatalogApp);
   app.route("/api", analyticsApp);
+  app.route("/", authApp);
+  app.route("/", adminPlansApp);
 
   const port = parseInt(process.env.PORT ?? "8787", 10);
   const server = serve({ fetch: app.fetch, port }, () => {

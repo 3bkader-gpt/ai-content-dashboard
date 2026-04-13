@@ -9,6 +9,9 @@ import {
   retryKitService,
 } from "../services/kitGenerationService.js";
 import { respondHttpError } from "./httpErrorMapping.js";
+import { getAuthUser } from "../middleware/userAuth.js";
+import { ensureUserFromSupabase } from "../services/subscriptionService.js";
+import { db } from "../db/index.js";
 
 const deviceIdSchema = z.string().uuid();
 
@@ -69,14 +72,23 @@ function requireDeviceId(c: import("hono").Context): { ok: true; deviceId: strin
   return { ok: true, deviceId: parsed.data };
 }
 
+async function resolveOwner(c: import("hono").Context) {
+  const device = requireDeviceId(c);
+  if (!device.ok) return device;
+  const authUser = getAuthUser(c);
+  if (!authUser) return { ok: true as const, owner: { deviceId: device.deviceId, userId: null as string | null } };
+  const user = await ensureUserFromSupabase(db, authUser);
+  return { ok: true as const, owner: { deviceId: device.deviceId, userId: user.id } };
+}
+
 export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => Promise<void | Response>) {
   const app = new Hono();
 
   app.use("/api/kits/*", mw);
 
   app.post("/api/kits/generate", async (c) => {
-    const device = requireDeviceId(c);
-    if (!device.ok) return device.response;
+    const ownerRes = await resolveOwner(c);
+    if (!ownerRes.ok) return ownerRes.response;
 
     let body: z.infer<typeof generateBodySchema>;
     try {
@@ -89,7 +101,8 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
       const result = await generateKitService({
         idempotencyKey: c.req.header("Idempotency-Key")?.trim() || "",
         body: body as Record<string, unknown>,
-        deviceId: device.deviceId,
+        deviceId: ownerRes.owner.deviceId,
+        userId: ownerRes.owner.userId,
       });
       return c.json(result.body, result.status as 200 | 201);
     } catch (err) {
@@ -102,27 +115,29 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
     if (scopeAll) {
       return c.json(await listKitsService());
     }
-    const device = requireDeviceId(c);
-    if (!device.ok) return device.response;
-    return c.json(await listKitsService(device.deviceId));
+    const ownerRes = await resolveOwner(c);
+    if (!ownerRes.ok) return ownerRes.response;
+    return c.json(await listKitsService(ownerRes.owner));
   });
 
   app.get("/api/kits/:id", async (c) => {
     const scopeAll = c.req.query("scope") === "all";
-    let deviceId: string | undefined;
+    let owner: { deviceId: string; userId?: string | null } | undefined;
     if (!scopeAll) {
-      const device = requireDeviceId(c);
-      if (!device.ok) return device.response;
-      deviceId = device.deviceId;
+      const ownerRes = await resolveOwner(c);
+      if (!ownerRes.ok) return ownerRes.response;
+      owner = ownerRes.owner;
     }
     try {
-      return c.json(await getKitByIdService(c.req.param("id"), deviceId));
+      return c.json(await getKitByIdService(c.req.param("id"), owner));
     } catch (err) {
       return respondHttpError(c, err, "Unexpected error while loading kit.");
     }
   });
 
   app.post("/api/kits/:id/retry", async (c) => {
+    const ownerRes = await resolveOwner(c);
+    if (!ownerRes.ok) return ownerRes.response;
     let body: z.infer<typeof retryBodySchema>;
     try {
       body = retryBodySchema.parse(await c.req.json());
@@ -135,6 +150,7 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
         id: c.req.param("id"),
         brief_json: body.brief_json,
         row_version: body.row_version,
+        owner: ownerRes.owner,
       });
       return c.json(result.body, result.status as 200);
     } catch (err) {
@@ -143,6 +159,8 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
   });
 
   app.post("/api/kits/:id/regenerate-item", async (c) => {
+    const ownerRes = await resolveOwner(c);
+    if (!ownerRes.ok) return ownerRes.response;
     const id = c.req.param("id");
     let body: z.infer<typeof regenerateItemBodySchema>;
     try {
@@ -158,6 +176,7 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
         index: body.index,
         row_version: body.row_version,
         feedback: body.feedback,
+        owner: ownerRes.owner,
       });
       return c.json(result.body, result.status as 200);
     } catch (err) {

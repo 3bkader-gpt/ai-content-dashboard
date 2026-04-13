@@ -32,7 +32,12 @@ export async function bearerAuth(c: Context, next: Next) {
     }
     const expected = "Bearer " + secret;
     if (auth !== expected) {
-      return c.json({ error: "Unauthorized" }, 401);
+      // Allow browser-issued JWTs to continue through trusted origin path; user token verification
+      // happens in optionalSupabaseUser middleware.
+      if (!isTrustedOriginRequest(c, allowedOrigins)) {
+        return c.json({ error: "Unauthorized" }, 401);
+      }
+      return await next();
     }
     return await next();
   }

@@ -15,6 +15,13 @@ import { generateWithGuardrails } from "./aiGenerationProvider.js";
 import { runContentPackageChain } from "./contentPackageOrchestrator.js";
 import { parseReferenceImageFromDataUrl } from "./imageProcessor.js";
 import {
+  consumeUsage,
+  enforceGenerateEntitlements,
+  enforceRegenerateEntitlements,
+  enforceRetryEntitlements,
+  resolveAccessContext,
+} from "./subscriptionService.js";
+import {
   finalizeIdempotencyKey,
   hashIdempotencyKey,
   IDEMPOTENCY_PENDING_KIT,
@@ -81,14 +88,14 @@ export function startIdempotencyCleanupJob(intervalMs = 10 * 60 * 1000, deps?: K
 async function persistGenerationFailure(params: {
   db: typeof db;
   snapshot: ReturnType<typeof buildSubmissionSnapshot>;
-  deviceId: string;
+  owner: { deviceId: string; userId?: string | null };
   settingsModel: string;
   reason: string;
   correlationId: string;
   promptVersionId?: string | null;
   isFallback?: boolean;
 }) {
-  return persistKit(params.db, params.snapshot, null, params.deviceId, {
+  return persistKit(params.db, params.snapshot, null, params.owner, {
     deliveryStatus: "failed_generation",
     modelUsed: params.settingsModel,
     lastError: params.reason,
@@ -102,6 +109,7 @@ export async function generateKitService(input: {
   idempotencyKey: string;
   body: Record<string, unknown>;
   deviceId: string;
+  userId?: string | null;
 }, deps?: KitGenerationDependencies) {
   const d = withDeps(deps);
   const idemHeader = input.idempotencyKey?.trim();
@@ -109,6 +117,12 @@ export async function generateKitService(input: {
 
   const snapshot = buildSubmissionSnapshot(input.body);
   const referenceImage = parseReferenceImageFromDataUrl(snapshot.reference_image);
+  const owner = { deviceId: input.deviceId, userId: input.userId ?? null };
+  const access = await resolveAccessContext(d.db, owner);
+  enforceGenerateEntitlements(access, {
+    campaignMode: snapshot.campaign_mode,
+    hasReferenceImage: Boolean(referenceImage),
+  });
   const fp = briefFingerprint(snapshot);
   const keyHash = hashIdempotencyKey(idemHeader);
   const reserved = await reserveIdempotencyKey(d.db, { keyHash, briefHash: fp });
@@ -135,7 +149,7 @@ export async function generateKitService(input: {
       aiContent[CONTENT_IDEAS_PACKAGE_KEY] = buildDemoContentIdeasPackage(snapshot.content_package_idea_count);
     }
     const emailResult = await d.sendKit(snapshot, aiContent);
-    const row = await persistKit(d.db, snapshot, aiContent, input.deviceId, {
+    const row = await persistKit(d.db, snapshot, aiContent, owner, {
       deliveryStatus: resolveDeliveryStatus(emailResult),
       modelUsed: "demo-mode",
       lastError: emailResult.error || "",
@@ -144,6 +158,7 @@ export async function generateKitService(input: {
       isFallback: resolved.isFallback,
     });
     await d.notify(row);
+    await consumeUsage(d.db, owner, "kits");
     await finalizeIdempotencyKey(d.db, { keyHash, briefHash: fp, kitId: row.id });
     return { status: 200, body: serializeKit(row) };
   }
@@ -152,7 +167,7 @@ export async function generateKitService(input: {
     const row = await persistGenerationFailure({
       db: d.db,
       snapshot,
-      deviceId: input.deviceId,
+      owner,
       settingsModel: settings.model,
       reason: "Missing GEMINI_API_KEY.",
       correlationId,
@@ -177,7 +192,7 @@ export async function generateKitService(input: {
       (aiContent as Record<string, unknown>)[CONTENT_IDEAS_PACKAGE_KEY] = pkg as unknown as Record<string, unknown>;
     }
     const emailResult = await d.sendKit(snapshot, aiContent);
-    const row = await persistKit(d.db, snapshot, aiContent, input.deviceId, {
+    const row = await persistKit(d.db, snapshot, aiContent, owner, {
       deliveryStatus: resolveDeliveryStatus(emailResult),
       modelUsed: settings.model,
       lastError: emailResult.error || "",
@@ -196,6 +211,7 @@ export async function generateKitService(input: {
       kitId: row.id,
     });
     await d.notify(row);
+    await consumeUsage(d.db, owner, "kits");
     await finalizeIdempotencyKey(d.db, { keyHash, briefHash: fp, kitId: row.id });
     return { status: 201, body: serializeKit(row) };
   } catch (err) {
@@ -203,7 +219,7 @@ export async function generateKitService(input: {
     const row = await persistGenerationFailure({
       db: d.db,
       snapshot,
-      deviceId: input.deviceId,
+      owner,
       settingsModel: settings.model,
       reason,
       correlationId,
@@ -237,11 +253,23 @@ export async function generateKitService(input: {
   }
 }
 
-export async function retryKitService(input: { id: string; brief_json: string; row_version: number }, deps?: KitGenerationDependencies) {
+export async function retryKitService(input: {
+  id: string;
+  brief_json: string;
+  row_version: number;
+  owner: { deviceId: string; userId?: string | null };
+}, deps?: KitGenerationDependencies) {
   const d = withDeps(deps);
   const id = input.id;
   const row = (await d.db.select().from(kits).where(eq(kits.id, id)).limit(1))[0];
   if (!row) throw new HttpError(404, "Not found");
+  const rowOwnerMatches = input.owner.userId
+    ? row.userId === input.owner.userId
+    : row.deviceId === input.owner.deviceId;
+  if (!rowOwnerMatches) throw new HttpError(404, "Not found");
+  const owner = { deviceId: row.deviceId, userId: row.userId ?? null };
+  const access = await resolveAccessContext(d.db, owner);
+  enforceRetryEntitlements(access);
   if (normalizeDeliveryStatus(row.deliveryStatus) !== "failed_generation") throw new HttpError(400, "Only failed_generation kits can be retried.");
   if (row.rowVersion !== input.row_version) throw new HttpError(409, "row_version mismatch; refresh and try again.");
 
@@ -287,6 +315,7 @@ export async function retryKitService(input: { id: string; brief_json: string; r
     }).where(and(eq(kits.id, id), eq(kits.rowVersion, nextVersion))).returning())[0];
     if (!done) throw new HttpError(409, "Concurrent update; refresh and try again.");
     await d.notify(done);
+    await consumeUsage(d.db, owner, "retry");
     return { status: 200, body: serializeKit(done) };
   }
 
@@ -341,6 +370,7 @@ export async function retryKitService(input: { id: string; brief_json: string; r
       kitId: ok.id,
     });
     await d.notify(ok);
+    await consumeUsage(d.db, owner, "retry");
     return { status: 200, body: serializeKit(ok) };
   } catch (err) {
     const reason = safeClientError(err, "Retry generation failed. Please retry.");
@@ -386,10 +416,18 @@ export async function regenerateKitItemService(input: {
   index: number;
   row_version: number;
   feedback?: string;
+  owner: { deviceId: string; userId?: string | null };
 }, deps?: KitGenerationDependencies) {
   const d = withDeps(deps);
   const row = (await d.db.select().from(kits).where(eq(kits.id, input.id)).limit(1))[0];
   if (!row) throw new HttpError(404, "Not found");
+  const rowOwnerMatches = input.owner.userId
+    ? row.userId === input.owner.userId
+    : row.deviceId === input.owner.deviceId;
+  if (!rowOwnerMatches) throw new HttpError(404, "Not found");
+  const owner = { deviceId: row.deviceId, userId: row.userId ?? null };
+  const access = await resolveAccessContext(d.db, owner);
+  enforceRegenerateEntitlements(access);
   if (row.rowVersion !== input.row_version) throw new HttpError(409, "row_version mismatch; refresh and try again.");
   if (!row.resultJson) throw new HttpError(422, "Kit has no generated content to regenerate.");
 
@@ -476,16 +514,17 @@ export async function regenerateKitItemService(input: {
     .where(and(eq(kits.id, input.id), eq(kits.rowVersion, input.row_version)))
     .returning();
   if (!updated.length) throw new HttpError(409, "Concurrent update; refresh and try again.");
+  await consumeUsage(d.db, owner, "regenerate");
   return { status: 200, body: serializeKit(updated[0]!) };
 }
 
-export async function listKitsService(deviceId?: string) {
-  if (!deviceId) return listAllKits(withDeps().db);
-  return listKits(withDeps().db, deviceId);
+export async function listKitsService(owner?: { deviceId: string; userId?: string | null }) {
+  if (!owner) return listAllKits(withDeps().db);
+  return listKits(withDeps().db, owner);
 }
 
-export async function getKitByIdService(id: string, deviceId?: string) {
-  const row = deviceId ? await getKitById(withDeps().db, id, deviceId) : await getKitByIdAny(withDeps().db, id);
+export async function getKitByIdService(id: string, owner?: { deviceId: string; userId?: string | null }) {
+  const row = owner ? await getKitById(withDeps().db, id, owner) : await getKitByIdAny(withDeps().db, id);
   if (!row) throw new HttpError(404, "Not found");
   return serializeKit(row);
 }
