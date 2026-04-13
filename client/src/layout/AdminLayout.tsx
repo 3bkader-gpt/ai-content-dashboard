@@ -84,9 +84,6 @@ export default function AdminLayout() {
               <span className="hidden sm:inline">{themeMode === "dark" ? "Light" : "Dark"}</span>
             </button>
             <nav className="flex items-center gap-1" aria-label="Admin navigation">
-              <NavLink to="/admin/prompt-catalog" className={({ isActive }) => navClass(isActive)}>
-                Prompt Catalog
-              </NavLink>
               <NavLink to="/admin/analytics" className={({ isActive }) => navClass(isActive)}>
                 Analytics
               </NavLink>

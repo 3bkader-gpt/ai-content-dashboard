@@ -3,7 +3,6 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { listPromptCatalogIndustries } from "../../api";
 import { BRIEF_LIMITS, briefSchema, initialBriefForm } from "../../briefSchema";
 import PillGroup from "../../components/selection/PillGroup";
 import SelectableCard from "../../components/selection/SelectableCard";
@@ -128,20 +127,8 @@ export default function WizardCore(props: WizardCoreProps) {
   const stepFieldMap = useMemo(() => ({ ...STEP_FIELDS, ...(props.stepFields ?? {}) }), [props.stepFields]);
   const zodSchema = props.formSchema ?? briefSchema;
   const zodResolverMemo = useMemo(() => zodResolver(zodSchema), [zodSchema]);
-  const [industryOptions, setIndustryOptions] = useState<{ slug: string; name: string }[]>(FALLBACK_INDUSTRY_OPTIONS);
+  const industryOptions = FALLBACK_INDUSTRY_OPTIONS;
   const variantB = isWizardVariantB();
-
-  useEffect(() => {
-    listPromptCatalogIndustries()
-      .then((d) => {
-        if (d.items.length) {
-          setIndustryOptions(d.items.map((i) => ({ slug: i.slug, name: i.name })));
-        }
-      })
-      .catch(() => {
-        /* keep fallback */
-      });
-  }, []);
 
   const [isOtherIndustry, setIsOtherIndustry] = useState(false);
   const [tipIndex, setTipIndex] = useState(0);

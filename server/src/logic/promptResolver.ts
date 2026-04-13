@@ -124,7 +124,25 @@ export async function resolvePrompt(industryInput: string, snapshot: SubmissionS
   }
 
   if (!selected) {
-    throw new Error("No active prompt found. Please configure a global fallback prompt.");
+    const prefix = campaignModeInstructionBlock(snapshot.campaign_mode);
+    const composed = composePrompt({
+      campaignPrefix: prefix,
+      creativeDirection:
+        "Use the client context to produce high-conversion assets with platform-native execution and strict bilingual parity.",
+      snapshot,
+      mode: snapshot.campaign_mode,
+      useMetaPrompt: true,
+    });
+    return {
+      industrySlugUsed: targetSlug,
+      promptVersionId: "meta-fallback:v1",
+      promptVersionUsed: 1,
+      isFallback: true,
+      renderedPrompt: composed,
+      rawTemplate: "meta-fallback:v1",
+      promptMode: "meta",
+      industrySource: "fallback",
+    };
   }
 
   const contract = validatePromptTemplateContract(selected.promptTemplate);

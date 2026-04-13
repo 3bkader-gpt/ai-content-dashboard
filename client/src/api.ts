@@ -12,17 +12,10 @@ export {
 } from "./api/profile";
 export type { StudioProfile, StudioPreferences, BrandVoicePillar, BrandVoicePayload } from "./api/profile";
 export {
-  listPromptCatalogIndustries,
-  createPromptCatalogIndustry,
-  listPromptVersions,
-  createPromptVersion,
-  activatePromptVersion,
-  deletePromptVersion,
-  getFallbackPrompt,
-  validatePromptTemplate,
-} from "./api/promptCatalog";
-export type { PromptCatalogIndustry, PromptCatalogPrompt } from "./api/promptCatalog";
-export { getHelpTopics, postExtrasWaitlist, getHealth } from "./api/misc";
+  getHelpTopics,
+  postExtrasWaitlist,
+  getHealth,
+} from "./api/misc";
 export type { HelpTopicsResponse } from "./api/misc";
 export { getEntitlements, syncAuthDevice } from "./api/auth";
 export type { EntitlementsResponse } from "./api/auth";

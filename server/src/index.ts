@@ -6,7 +6,6 @@ import { secureHeaders } from "hono/secure-headers";
 import { runMigrations, db } from "./db/index.js";
 import { createKitsRouter } from "./routes/kits.js";
 import { createFeaturesRouter } from "./routes/features.js";
-import { createPromptCatalogRouter } from "./routes/promptCatalog.js";
 import { createAnalyticsRouter } from "./routes/analytics.js";
 import { createAuthRouter } from "./routes/auth.js";
 import { createAdminPlansRouter } from "./routes/adminPlans.js";
@@ -47,7 +46,6 @@ async function main() {
         health: "/health",
         kits: "/api/kits",
         features: "/api/profile",
-        promptCatalog: "/api/prompt-catalog/industries",
         wizardAnalytics: "/api/analytics/wizard-events",
       },
     })
@@ -65,14 +63,12 @@ async function main() {
 
   const kitsApp = createKitsRouter(kitsGuard);
   const featuresApp = createFeaturesRouter(kitsGuard);
-  const promptCatalogApp = createPromptCatalogRouter(kitsGuard);
   const analyticsApp = createAnalyticsRouter();
   const authApp = createAuthRouter(kitsGuard);
   const adminPlansApp = createAdminPlansRouter();
 
   app.route("/", kitsApp);
   app.route("/api", featuresApp);
-  app.route("/api", promptCatalogApp);
   app.route("/api", analyticsApp);
   app.route("/", authApp);
   app.route("/", adminPlansApp);

@@ -1,5 +1,4 @@
 import { pool } from "./connection.js";
-import { seedPromptCatalog } from "./seeds/promptCatalog.js";
 
 const DDL = `
 CREATE SCHEMA IF NOT EXISTS social_geni;
@@ -187,5 +186,4 @@ export async function runMigrations(): Promise<void> {
   } finally {
     client.release();
   }
-  await seedPromptCatalog();
 }

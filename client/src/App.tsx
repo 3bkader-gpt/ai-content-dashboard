@@ -2,7 +2,6 @@ import { Routes, Route, Navigate, Link } from "react-router-dom";
 import KitDetail from "./KitDetail";
 import Dashboard from "./Dashboard";
 import GeneratedKitsPage from "./GeneratedKitsPage";
-import PromptCatalogPage from "./pages/PromptCatalogPage";
 import WizardAnalyticsPage from "./pages/WizardAnalyticsPage";
 import AdminPlansPage from "./pages/AdminPlansPage";
 import SocialCampaignWizard from "./pages/wizards/SocialCampaignWizard";
@@ -69,8 +68,7 @@ export default function App() {
       </Route>
 
       <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<Navigate to="/admin/prompt-catalog" replace />} />
-        <Route path="prompt-catalog" element={<PromptCatalogPage />} />
+        <Route index element={<Navigate to="/admin/analytics" replace />} />
         <Route path="analytics" element={<WizardAnalyticsPage />} />
         <Route path="plans" element={<AdminPlansPage />} />
         <Route path="generated-kits" element={<GeneratedKitsPage adminMode />} />
@@ -79,7 +77,7 @@ export default function App() {
       </Route>
 
       {/* Legacy admin routes kept as temporary redirects */}
-      <Route path="/prompt-catalog" element={<Navigate to="/admin/prompt-catalog" replace />} />
+      <Route path="/prompt-catalog" element={<Navigate to="/admin/analytics" replace />} />
       <Route path="/analytics" element={<Navigate to="/admin/analytics" replace />} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
