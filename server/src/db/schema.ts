@@ -13,6 +13,7 @@ export const socialGeni = pgSchema("social_geni");
 export const kits = socialGeni.table("kits", {
   id: text("id").primaryKey(),
   deviceId: text("device_id").notNull().default(""),
+  userId: text("user_id"),
   briefJson: text("brief_json").notNull(),
   resultJson: text("result_json"),
   deliveryStatus: text("delivery_status").notNull(),
@@ -31,6 +32,46 @@ export const idempotencyKeys = socialGeni.table("idempotency_keys", {
   briefHash: text("brief_hash").notNull(),
   kitId: text("kit_id").notNull(),
   expiresAt: bigint("expires_at", { mode: "number" }).notNull(),
+});
+
+export const users = socialGeni.table("users", {
+  id: text("id").primaryKey(),
+  supabaseUserId: text("supabase_user_id").notNull().unique(),
+  email: text("email").notNull().default(""),
+  displayName: text("display_name").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull(),
+});
+
+export const userDevices = socialGeni.table("user_devices", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  deviceId: text("device_id").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull(),
+});
+
+export const planSubscriptions = socialGeni.table("plan_subscriptions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  planCode: text("plan_code").notNull(),
+  status: text("status").notNull(),
+  periodStart: timestamp("period_start", { withTimezone: true, mode: "date" }).notNull(),
+  periodEnd: timestamp("period_end", { withTimezone: true, mode: "date" }),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull(),
+});
+
+export const monthlyUsageCounters = socialGeni.table("monthly_usage_counters", {
+  id: text("id").primaryKey(),
+  userId: text("user_id"),
+  deviceId: text("device_id"),
+  periodKey: text("period_key").notNull(),
+  kitsUsed: integer("kits_used").notNull().default(0),
+  regenerateUsed: integer("regenerate_used").notNull().default(0),
+  retryUsed: integer("retry_used").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull(),
 });
 
 export const kitFailureLogs = socialGeni.table("kit_failure_logs", {

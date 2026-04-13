@@ -7,6 +7,7 @@ CREATE SCHEMA IF NOT EXISTS social_geni;
 CREATE TABLE IF NOT EXISTS social_geni.kits (
   id TEXT PRIMARY KEY NOT NULL,
   device_id TEXT NOT NULL DEFAULT '',
+  user_id TEXT,
   brief_json TEXT NOT NULL,
   result_json TEXT,
   delivery_status TEXT NOT NULL,
@@ -22,6 +23,9 @@ CREATE TABLE IF NOT EXISTS social_geni.kits (
 
 ALTER TABLE social_geni.kits
 ADD COLUMN IF NOT EXISTS device_id TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE social_geni.kits
+ADD COLUMN IF NOT EXISTS user_id TEXT;
 
 CREATE TABLE IF NOT EXISTS social_geni.idempotency_keys (
   key_hash TEXT PRIMARY KEY NOT NULL,
@@ -47,6 +51,59 @@ CREATE INDEX IF NOT EXISTS idx_kit_failure_logs_phase ON social_geni.kit_failure
 
 CREATE INDEX IF NOT EXISTS idx_kits_created ON social_geni.kits (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_kits_device_created ON social_geni.kits (device_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_kits_user_created ON social_geni.kits (user_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS social_geni.users (
+  id TEXT PRIMARY KEY NOT NULL,
+  supabase_user_id TEXT NOT NULL UNIQUE,
+  email TEXT NOT NULL DEFAULT '',
+  display_name TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS social_geni.user_devices (
+  id TEXT PRIMARY KEY NOT NULL,
+  user_id TEXT NOT NULL,
+  device_id TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_devices_user ON social_geni.user_devices (user_id, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS social_geni.plan_subscriptions (
+  id TEXT PRIMARY KEY NOT NULL,
+  user_id TEXT NOT NULL,
+  plan_code TEXT NOT NULL,
+  status TEXT NOT NULL,
+  period_start TIMESTAMPTZ NOT NULL,
+  period_end TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_plan_subscriptions_user ON social_geni.plan_subscriptions (user_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_plan_subscriptions_status ON social_geni.plan_subscriptions (status, period_end);
+
+CREATE TABLE IF NOT EXISTS social_geni.monthly_usage_counters (
+  id TEXT PRIMARY KEY NOT NULL,
+  user_id TEXT,
+  device_id TEXT,
+  period_key TEXT NOT NULL,
+  kits_used INTEGER NOT NULL DEFAULT 0,
+  regenerate_used INTEGER NOT NULL DEFAULT 0,
+  retry_used INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_usage_user_period
+  ON social_geni.monthly_usage_counters (user_id, period_key)
+  WHERE user_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_usage_device_period
+  ON social_geni.monthly_usage_counters (device_id, period_key)
+  WHERE device_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS social_geni.notifications (
   id TEXT PRIMARY KEY NOT NULL,
