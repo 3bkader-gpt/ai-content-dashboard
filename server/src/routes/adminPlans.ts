@@ -60,6 +60,12 @@ function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
 }
 
+function addOneMonth(date: Date): Date {
+  const copy = new Date(date);
+  copy.setUTCMonth(copy.getUTCMonth() + 1);
+  return copy;
+}
+
 async function countAdmins(): Promise<number> {
   const rows = await db
     .select({
@@ -121,7 +127,12 @@ export function createAdminPlansRouter(
     }
     const now = new Date();
     const periodStart = body.period_start ? new Date(body.period_start) : now;
-    const periodEnd = body.period_end ? new Date(body.period_end) : null;
+    const periodEnd =
+      body.period_end
+        ? new Date(body.period_end)
+        : body.status === "active" || body.status === "trialing"
+          ? addOneMonth(periodStart)
+          : null;
     const existing = (
       await db
         .select()
