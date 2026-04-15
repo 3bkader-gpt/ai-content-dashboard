@@ -11,11 +11,11 @@ import AdditionalNotes from "../../components/AdditionalNotes";
 import {
   decodeMultiSelection,
   decodeSingleSelection,
-  encodeMultiSelection,
   encodeSingleSelection,
 } from "../../lib/selectionFieldCodec";
 import type { BriefForm } from "../../types";
 import {
+  BEST_CONTENT_TYPE_OPTIONS,
   BRAND_TONE_OPTIONS,
   MAIN_GOAL_OPTIONS,
   OTHER_OPTION,
@@ -43,6 +43,8 @@ type SelectionState = {
   audienceOther: string;
   platformsSelected: string[];
   platformsOther: string;
+  bestContentTypesSelected: string[];
+  bestContentTypesOther: string;
 };
 
 type WizardCoreProps = {
@@ -101,6 +103,13 @@ function cn(...parts: (string | false | undefined | null)[]) {
 
 function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
+}
+
+function buildMultiArray(selected: readonly string[], otherText: string): string[] {
+  const values = selected.filter((v) => v && v !== OTHER_OPTION.value);
+  const other = otherText.trim();
+  if (other) values.push(other);
+  return Array.from(new Set(values));
 }
 
 const labelCls = "mb-2 ms-1 block text-xs font-semibold uppercase tracking-widest text-on-surface-variant";
@@ -236,6 +245,7 @@ export default function WizardCore(props: WizardCoreProps) {
     const tone = decodeSingleSelection(initialState.form.brand_tone, BRAND_TONE_OPTIONS);
     const audience = decodeMultiSelection(initialState.form.target_audience, TARGET_AUDIENCE_OPTIONS);
     const platforms = decodeMultiSelection(initialState.form.platforms, PLATFORM_OPTIONS);
+    const bestContentTypes = decodeMultiSelection(initialState.form.best_content_types, BEST_CONTENT_TYPE_OPTIONS);
     return {
       mainGoalSelected: goal.selected,
       mainGoalOther: goal.otherText,
@@ -245,6 +255,8 @@ export default function WizardCore(props: WizardCoreProps) {
       audienceOther: audience.otherText,
       platformsSelected: platforms.selected,
       platformsOther: platforms.otherText,
+      bestContentTypesSelected: bestContentTypes.selected,
+      bestContentTypesOther: bestContentTypes.otherText,
     };
   });
 
@@ -295,6 +307,8 @@ export default function WizardCore(props: WizardCoreProps) {
       audienceOther: "",
       platformsSelected: [],
       platformsOther: "",
+      bestContentTypesSelected: [],
+      bestContentTypesOther: "",
     });
     setStep(0);
     clearStoredDraft();
@@ -314,21 +328,18 @@ export default function WizardCore(props: WizardCoreProps) {
       selectionState.brandToneOther,
       BRAND_TONE_OPTIONS
     );
-    const serializedAudience = encodeMultiSelection(
-      selectionState.audienceSelected,
-      selectionState.audienceOther,
-      TARGET_AUDIENCE_OPTIONS
-    );
-    const serializedPlatforms = encodeMultiSelection(
-      selectionState.platformsSelected,
-      selectionState.platformsOther,
-      PLATFORM_OPTIONS
+    const audienceArray = buildMultiArray(selectionState.audienceSelected, selectionState.audienceOther);
+    const platformsArray = buildMultiArray(selectionState.platformsSelected, selectionState.platformsOther);
+    const bestContentTypesArray = buildMultiArray(
+      selectionState.bestContentTypesSelected,
+      selectionState.bestContentTypesOther
     );
 
     setValue("main_goal", serializedGoal, { shouldDirty: true });
     setValue("brand_tone", serializedTone, { shouldDirty: true });
-    setValue("target_audience", serializedAudience, { shouldDirty: true });
-    setValue("platforms", serializedPlatforms, { shouldDirty: true });
+    setValue("target_audience", audienceArray, { shouldDirty: true });
+    setValue("platforms", platformsArray, { shouldDirty: true });
+    setValue("best_content_types", bestContentTypesArray, { shouldDirty: true });
   }, [selectionState, setValue]);
 
   const { next } = useWizardOrchestrator({
@@ -401,11 +412,12 @@ export default function WizardCore(props: WizardCoreProps) {
   const industryValue = watch("industry");
   const mainGoalValue = watch("main_goal");
   const audienceValue = watch("target_audience");
+  const hasAudience = Array.isArray(audienceValue) && audienceValue.length > 0;
   const canShowValuePreview =
     step >= 1 &&
     Boolean(brandNameValue?.trim()) &&
     Boolean(industryValue?.trim()) &&
-    (Boolean(mainGoalValue?.trim()) || Boolean(audienceValue?.trim()));
+    (Boolean(mainGoalValue?.trim()) || hasAudience);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-2 sm:px-4">
@@ -850,8 +862,50 @@ export default function WizardCore(props: WizardCoreProps) {
                 )}
                 {showField("creative", "best_content_types") && (
                   <div>
-                    <label htmlFor="best_content_types" className={labelCls}>Best-performing content types</label>
-                    <div className={fieldShell}><textarea id="best_content_types" className={textareaCls} {...register("best_content_types")} /></div>
+                    <label className={labelCls}>Best-performing content types</label>
+                    <PillGroup
+                      options={BEST_CONTENT_TYPE_OPTIONS}
+                      selectedValues={selectionState.bestContentTypesSelected}
+                      onToggle={(value) =>
+                        setSelectionState((prev) => ({
+                          ...prev,
+                          bestContentTypesSelected: toggleListValue(prev.bestContentTypesSelected, value),
+                        }))
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="mt-3 inline-flex items-center gap-2 rounded-full border border-brand-sand/30 bg-earth-card px-3 py-1.5 text-xs font-semibold text-on-surface transition hover:bg-earth-alt dark:border-outline/30 dark:bg-surface-container-high dark:hover:bg-surface-container-highest"
+                      onClick={() =>
+                        setSelectionState((prev) => {
+                          const enabled =
+                            !!prev.bestContentTypesOther.trim() ||
+                            prev.bestContentTypesSelected.includes(OTHER_OPTION.value);
+                          return {
+                            ...prev,
+                            bestContentTypesSelected: enabled
+                              ? prev.bestContentTypesSelected.filter((v) => v !== OTHER_OPTION.value)
+                              : [...prev.bestContentTypesSelected, OTHER_OPTION.value],
+                          };
+                        })
+                      }
+                    >
+                      <span>{OTHER_OPTION.icon}</span>
+                      <span>{OTHER_OPTION.labelAr}</span>
+                    </button>
+                    {selectionState.bestContentTypesSelected.includes(OTHER_OPTION.value) && (
+                      <div className={fieldShell + " mt-3"}>
+                        <input
+                          id="best_content_types_other"
+                          className={inputCls}
+                          value={selectionState.bestContentTypesOther}
+                          onChange={(e) =>
+                            setSelectionState((prev) => ({ ...prev, bestContentTypesOther: e.target.value }))
+                          }
+                          placeholder="اكتب نوع محتوى إضافي..."
+                        />
+                      </div>
+                    )}
                     {errors.best_content_types && <p className={errCls}>{errors.best_content_types.message}</p>}
                   </div>
                 )}

@@ -5,6 +5,7 @@ import {
   boolean,
   bigint,
   timestamp,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 /** Isolated schema on shared Supabase — avoids colliding with other apps in `public`. */
@@ -15,6 +16,9 @@ export const kits = socialGeni.table("kits", {
   deviceId: text("device_id").notNull().default(""),
   userId: text("user_id"),
   briefJson: text("brief_json").notNull(),
+  targetAudienceV2: jsonb("target_audience_v2").$type<string[]>().notNull().default([]),
+  platformsV2: jsonb("platforms_v2").$type<string[]>().notNull().default([]),
+  bestContentTypesV2: jsonb("best_content_types_v2").$type<string[]>().notNull().default([]),
   resultJson: text("result_json"),
   deliveryStatus: text("delivery_status").notNull(),
   modelUsed: text("model_used").notNull(),
