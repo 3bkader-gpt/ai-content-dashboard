@@ -209,6 +209,33 @@ export function buildMetaPromptBlock(snapshot: SubmissionSnapshot): string {
   ].join("\n");
 }
 
+function hashDiversitySeed(input: string): string {
+  let hash = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return hash.toString(36);
+}
+
+export function buildDiversityPolicyBlock(snapshot: SubmissionSnapshot): string {
+  const saltInput = [
+    cleanText(snapshot.brand_name),
+    cleanText(snapshot.industry),
+    cleanText(snapshot.main_goal),
+    cleanText(snapshot.platforms),
+    snapshot.submitted_at.toISOString(),
+  ].join("|");
+  const runSalt = hashDiversitySeed(saltInput);
+
+  return [
+    `Run diversity salt: ${runSalt}`,
+    "Generate fresh concepts for this specific run. Do not copy phrase templates from previous outputs.",
+    "For posts, vary hook style, opening angle, and CTA framing across items while staying on-brand.",
+    "For image/video concepts, vary scene composition, context, and emotional trigger (avoid repeated setup).",
+    "Never repeat identical captions, headlines, or `ai_tool_instructions` across this response.",
+  ].join("\n");
+}
+
 export function composePrompt(input: {
   campaignPrefix: string;
   creativeDirection: string;
@@ -223,6 +250,7 @@ export function composePrompt(input: {
     section("Client Context (auto-injected)", buildClientContextBlock(input.snapshot)),
     section("Conditional Diagnostic Rules", buildDiagnosticRulesBlock(input.snapshot)),
     section("Few-shot Guidance", buildFewShotGuidanceBlock()),
+    section("Diversity Rules", buildDiversityPolicyBlock(input.snapshot)),
     section("Video Director Rules", buildVideoDirectorPolicyBlock()),
     section("Output Rules", buildOutputPolicyBlock(input.mode)),
   ]

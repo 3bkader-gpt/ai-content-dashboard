@@ -99,7 +99,7 @@ export const deepBriefSchema = briefSchema.extend({
   main_goal: requiredStr("Select a main goal"),
   visual_notes: requiredStr("Add creative direction"),
   campaign_duration: requiredStr("Add timing or duration"),
-  best_content_types: requiredStr("List content types you want"),
+  best_content_types: requiredStr("Select at least one content type"),
 });
 
 export const socialBriefSchemaWithDiagnosis = socialBriefSchema.extend({
