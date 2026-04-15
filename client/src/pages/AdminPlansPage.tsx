@@ -9,6 +9,7 @@ import {
   type AdminUserItem,
 } from "../api";
 import { AdminNotice, AdminPageShell } from "../components/admin/AdminPageShell";
+import { useAuth } from "../auth/AuthContext";
 
 const planOptions = [
   { value: "starter", label: "Starter" },
@@ -44,6 +45,7 @@ function useDebouncedValue<T>(value: T, delayMs = 400) {
 }
 
 export default function AdminPlansPage() {
+  const { ready, session } = useAuth();
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [usersQuery, setUsersQuery] = useState("");
   const debouncedQuery = useDebouncedValue(usersQuery.trim(), 400);
@@ -79,6 +81,7 @@ export default function AdminPlansPage() {
     setUsersLoading(true);
     try {
       const data = await listAdminUsers(query, page, signal);
+      setMessage(null);
       setUsers(data.users);
       setUsersPage(data.page);
       setUsersPageSize(data.page_size);
@@ -97,17 +100,28 @@ export default function AdminPlansPage() {
   };
 
   useEffect(() => {
+    if (!ready) return;
+    if (!session) {
+      setUsers([]);
+      setSnapshot(null);
+      setMessage({
+        tone: "info",
+        text: "Please sign in with your admin account first, then reopen Admin Plans.",
+      });
+      return;
+    }
     const controller = new AbortController();
     void loadUsers(usersPage, debouncedQuery, controller.signal);
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery, usersPage, refreshKey]);
+  }, [ready, session, debouncedQuery, usersPage, refreshKey]);
 
   const loadPlans = async (targetUserId: string) => {
     if (!targetUserId.trim()) return;
     setSnapshotLoading(true);
     try {
       const data = await getAdminUserPlans(targetUserId);
+      setMessage(null);
       setSnapshot(data);
       if (data.subscriptions[0]) {
         const current = data.subscriptions[0];
@@ -130,9 +144,10 @@ export default function AdminPlansPage() {
   };
 
   useEffect(() => {
+    if (!ready || !session) return;
     if (!selectedUserId) return;
     void loadPlans(selectedUserId);
-  }, [selectedUserId]);
+  }, [ready, session, selectedUserId]);
 
   const applyRoleByEmail = async (isAdmin: boolean) => {
     if (!roleEmail.trim()) {
