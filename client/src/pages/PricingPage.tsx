@@ -121,6 +121,34 @@ export default function PricingPage() {
         </p>
       </header>
 
+      <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/15 via-primary/10 to-tertiary/10 p-5 shadow-sm dark:border-primary/40 dark:from-primary/20 dark:via-primary/10 dark:to-surface-container-high">
+        <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-primary/20 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-10 left-8 h-24 w-24 rounded-full bg-tertiary/20 blur-2xl" />
+        <div className="relative">
+          <p className="inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
+            <span className="material-symbols-outlined text-sm">bolt</span>
+            Instant Free Trial
+          </p>
+          <h2 className="mt-3 font-headline text-xl font-black tracking-tight text-on-surface sm:text-2xl">
+            Try now for free — no payment, no login required
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm text-on-surface-variant">
+            Start immediately with the Starter plan using your device. When you are ready to scale, upgrade to Early Adopter with instant manual activation.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="rounded-full border border-outline/30 bg-surface-container-low px-3 py-1 text-xs font-semibold text-on-surface-variant">
+              100% free start
+            </span>
+            <span className="rounded-full border border-outline/30 bg-surface-container-low px-3 py-1 text-xs font-semibold text-on-surface-variant">
+              No card required
+            </span>
+            <span className="rounded-full border border-outline/30 bg-surface-container-low px-3 py-1 text-xs font-semibold text-on-surface-variant">
+              No login required
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-2">
         {planCards.map((plan) => {
           const isCurrent = currentPlan === plan.id;
