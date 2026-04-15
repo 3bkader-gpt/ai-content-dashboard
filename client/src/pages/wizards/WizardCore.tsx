@@ -11,7 +11,6 @@ import AdditionalNotes from "../../components/AdditionalNotes";
 import {
   decodeMultiSelection,
   decodeSingleSelection,
-  encodeMultiSelection,
   encodeSingleSelection,
 } from "../../lib/selectionFieldCodec";
 import type { BriefForm } from "../../types";
@@ -104,6 +103,13 @@ function cn(...parts: (string | false | undefined | null)[]) {
 
 function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
+}
+
+function buildMultiArray(selected: readonly string[], otherText: string): string[] {
+  const values = selected.filter((v) => v && v !== OTHER_OPTION.value);
+  const other = otherText.trim();
+  if (other) values.push(other);
+  return Array.from(new Set(values));
 }
 
 const labelCls = "mb-2 ms-1 block text-xs font-semibold uppercase tracking-widest text-on-surface-variant";
@@ -322,27 +328,18 @@ export default function WizardCore(props: WizardCoreProps) {
       selectionState.brandToneOther,
       BRAND_TONE_OPTIONS
     );
-    const serializedAudience = encodeMultiSelection(
-      selectionState.audienceSelected,
-      selectionState.audienceOther,
-      TARGET_AUDIENCE_OPTIONS
-    );
-    const serializedPlatforms = encodeMultiSelection(
-      selectionState.platformsSelected,
-      selectionState.platformsOther,
-      PLATFORM_OPTIONS
-    );
-    const serializedBestContentTypes = encodeMultiSelection(
+    const audienceArray = buildMultiArray(selectionState.audienceSelected, selectionState.audienceOther);
+    const platformsArray = buildMultiArray(selectionState.platformsSelected, selectionState.platformsOther);
+    const bestContentTypesArray = buildMultiArray(
       selectionState.bestContentTypesSelected,
-      selectionState.bestContentTypesOther,
-      BEST_CONTENT_TYPE_OPTIONS
+      selectionState.bestContentTypesOther
     );
 
     setValue("main_goal", serializedGoal, { shouldDirty: true });
     setValue("brand_tone", serializedTone, { shouldDirty: true });
-    setValue("target_audience", serializedAudience, { shouldDirty: true });
-    setValue("platforms", serializedPlatforms, { shouldDirty: true });
-    setValue("best_content_types", serializedBestContentTypes, { shouldDirty: true });
+    setValue("target_audience", audienceArray, { shouldDirty: true });
+    setValue("platforms", platformsArray, { shouldDirty: true });
+    setValue("best_content_types", bestContentTypesArray, { shouldDirty: true });
   }, [selectionState, setValue]);
 
   const { next } = useWizardOrchestrator({
@@ -415,11 +412,12 @@ export default function WizardCore(props: WizardCoreProps) {
   const industryValue = watch("industry");
   const mainGoalValue = watch("main_goal");
   const audienceValue = watch("target_audience");
+  const hasAudience = Array.isArray(audienceValue) && audienceValue.length > 0;
   const canShowValuePreview =
     step >= 1 &&
     Boolean(brandNameValue?.trim()) &&
     Boolean(industryValue?.trim()) &&
-    (Boolean(mainGoalValue?.trim()) || Boolean(audienceValue?.trim()));
+    (Boolean(mainGoalValue?.trim()) || hasAudience);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-2 sm:px-4">

@@ -5,6 +5,16 @@ function cleanText(v: unknown): string {
   return String(v ?? "").trim();
 }
 
+function cleanList(v: unknown): string {
+  if (Array.isArray(v)) {
+    return v
+      .map((item) => String(item ?? "").trim())
+      .filter(Boolean)
+      .join("، ");
+  }
+  return cleanText(v);
+}
+
 const VIDEO_NEGATIVE_SUFFIX =
   "Ensure no text, no floating letters, no watermarks. Maintain strict physical consistency.";
 
@@ -124,9 +134,9 @@ export function buildClientContextBlock(snapshot: SubmissionSnapshot): string {
   const lines = [
     `Brand name: ${cleanText(snapshot.brand_name)}`,
     `Industry: ${cleanText(snapshot.industry)}`,
-    `Target audience: ${cleanText(snapshot.target_audience)}`,
+    `Target audience: ${cleanList(snapshot.target_audience)}`,
     `Main goal: ${cleanText(snapshot.main_goal)}`,
-    `Platforms: ${cleanText(snapshot.platforms)}`,
+    `Platforms: ${cleanList(snapshot.platforms)}`,
     `Brand tone: ${cleanText(snapshot.brand_tone)}`,
     `Brand colors: ${cleanText(snapshot.brand_colors)}`,
     `Offer: ${cleanText(snapshot.offer)}`,
@@ -135,7 +145,7 @@ export function buildClientContextBlock(snapshot: SubmissionSnapshot): string {
     `Reference image attached: ${cleanText(snapshot.reference_image) ? "yes" : "no"}`,
     `Campaign duration/timing: ${cleanText(snapshot.campaign_duration)}`,
     `Budget level: ${cleanText(snapshot.budget_level)}`,
-    `Best content types: ${cleanText(snapshot.best_content_types)}`,
+    `Best content types: ${cleanList(snapshot.best_content_types)}`,
     `Requested posts count: ${snapshot.num_posts}`,
     `Requested image designs count: ${snapshot.num_image_designs}`,
     `Requested video prompts count: ${snapshot.num_video_prompts}`,
@@ -179,10 +189,10 @@ export function buildVideoDirectorPolicyBlock(): string {
 
 export function buildMetaPromptBlock(snapshot: SubmissionSnapshot): string {
   const industry = cleanText(snapshot.industry) || "General";
-  const audience = cleanText(snapshot.target_audience) || "General audience";
+  const audience = cleanList(snapshot.target_audience) || "General audience";
   const goal = cleanText(snapshot.main_goal) || "Drive measurable marketing outcomes";
   const offer = cleanText(snapshot.offer) || "Not specified";
-  const platforms = cleanText(snapshot.platforms) || "Not specified";
+  const platforms = cleanList(snapshot.platforms) || "Not specified";
   const hasReferenceImage = Boolean(cleanText(snapshot.reference_image));
   return [
     "You are a Creative Director and strategic marketer.",
@@ -222,7 +232,7 @@ export function buildDiversityPolicyBlock(snapshot: SubmissionSnapshot): string 
     cleanText(snapshot.brand_name),
     cleanText(snapshot.industry),
     cleanText(snapshot.main_goal),
-    cleanText(snapshot.platforms),
+    cleanList(snapshot.platforms),
     snapshot.submitted_at.toISOString(),
   ].join("|");
   const runSalt = hashDiversitySeed(saltInput);
