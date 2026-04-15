@@ -60,13 +60,14 @@ export async function updateAdminUserPlan(userId: string, payload: UpdatePayload
   if (!res.ok) throw new ApiError(await parseErrorMessage(res, "Failed to update user plan"), res.status);
 }
 
-export async function listAdminUsers(query = "", page = 1): Promise<AdminUsersResponse> {
+export async function listAdminUsers(query = "", page = 1, signal?: AbortSignal): Promise<AdminUsersResponse> {
   const params = new URLSearchParams();
   if (query.trim()) params.set("query", query.trim());
   if (page > 1) params.set("page", String(page));
   const suffix = params.toString() ? `?${params.toString()}` : "";
   const res = await fetch(apiUrl(`/api/admin/users${suffix}`), {
     headers: buildHeaders(),
+    signal,
   });
   if (!res.ok) throw new ApiError(await parseErrorMessage(res, "Failed to load users"), res.status);
   return res.json() as Promise<AdminUsersResponse>;

@@ -4,6 +4,7 @@ import {
   readWizardAnalyticsBuffer,
   summarizeWizardEvents,
 } from "../lib/wizardAnalyticsQuery";
+import { AdminPageShell } from "../components/admin/AdminPageShell";
 
 function Card({ label, value }: { label: string; value: string }) {
   return (
@@ -20,14 +21,12 @@ export default function WizardAnalyticsPage() {
   const summary = useMemo(() => summarizeWizardEvents(events), [events]);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-2 sm:px-4">
-      <header className="rounded-2xl border border-primary/20 bg-primary/10 p-4">
-        <p className="text-xs font-bold uppercase tracking-wide text-primary">Wizard KPI Dashboard v1</p>
-        <h1 className="mt-1 text-2xl font-extrabold text-on-surface">Funnel snapshot (local buffer)</h1>
-        <p className="mt-1 text-sm text-on-surface-variant">
-          Source: <code>wizard:analytics</code> local buffer. Use this to detect drop-off and validate conversion changes quickly.
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
+    <AdminPageShell
+      eyebrow="Admin analytics"
+      title="Funnel snapshot (local buffer)"
+      description="Source: wizard:analytics local buffer. Use this to detect drop-off and validate conversion changes quickly."
+      actions={
+        <>
           <button
             type="button"
             className="rounded-lg border border-outline/30 bg-surface-container-high px-3 py-2 text-sm font-semibold text-on-surface"
@@ -45,8 +44,9 @@ export default function WizardAnalyticsPage() {
           >
             Clear buffer
           </button>
-        </div>
-      </header>
+        </>
+      }
+    >
 
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Card label="Total events" value={String(summary.totalEvents)} />
@@ -116,7 +116,7 @@ export default function WizardAnalyticsPage() {
           </div>
         )}
       </section>
-    </div>
+    </AdminPageShell>
   );
 }
 
