@@ -246,16 +246,43 @@ export function buildDiversityPolicyBlock(snapshot: SubmissionSnapshot): string 
   ].join("\n");
 }
 
+export type BrandVoiceContext = {
+  pillars: { title: string; body: string }[];
+  avoidWords: string[];
+  sampleSnippet: string;
+};
+
+export function buildBrandVoiceBlock(voice?: BrandVoiceContext): string {
+  if (!voice) return "";
+  const lines: string[] = ["Follow these core brand voice guidelines for all generated copy:"];
+  if (voice.pillars.length > 0) {
+    lines.push("### Voice Pillars:");
+    voice.pillars.forEach((p) => {
+      lines.push(`- **${cleanText(p.title)}**: ${cleanText(p.body)}`);
+    });
+  }
+  if (voice.avoidWords.length > 0) {
+    lines.push(`### Words/Phrases to avoid: ${voice.avoidWords.join(", ")}`);
+  }
+  if (cleanText(voice.sampleSnippet)) {
+    lines.push("### Style Sample (Match this vibe):");
+    lines.push(cleanText(voice.sampleSnippet));
+  }
+  return lines.join("\n");
+}
+
 export function composePrompt(input: {
   campaignPrefix: string;
   creativeDirection: string;
   snapshot: SubmissionSnapshot;
   mode: CampaignMode;
   useMetaPrompt?: boolean;
+  brandVoice?: BrandVoiceContext;
 }): string {
   const parts = [
     cleanText(input.campaignPrefix),
     input.useMetaPrompt ? section("Meta Strategy Core", buildMetaPromptBlock(input.snapshot)) : "",
+    section("Brand Voice & Tone", buildBrandVoiceBlock(input.brandVoice)),
     section("Creative Direction", input.creativeDirection),
     section("Client Context (auto-injected)", buildClientContextBlock(input.snapshot)),
     section("Conditional Diagnostic Rules", buildDiagnosticRulesBlock(input.snapshot)),

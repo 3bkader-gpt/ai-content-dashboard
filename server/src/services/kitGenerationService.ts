@@ -37,6 +37,24 @@ import {
 } from "./kitGenerationDomain.js";
 import { logKitFailure } from "./kitFailureLogRepository.js";
 import { HttpError, safeClientError } from "./serviceErrors.js";
+import { brandVoice } from "../db/schema.js";
+import { type BrandVoiceContext } from "../logic/promptComposer.js";
+
+async function fetchBrandVoiceContext(db: any, userId?: string | null): Promise<BrandVoiceContext | undefined> {
+  if (!userId) return undefined;
+  const rows = await db.select().from(brandVoice).where(eq(brandVoice.userId, userId)).limit(1);
+  const row = rows[0];
+  if (!row) return undefined;
+  try {
+    return {
+      pillars: JSON.parse(row.pillarsJson),
+      avoidWords: JSON.parse(row.avoidWordsJson),
+      sampleSnippet: row.sampleSnippet,
+    };
+  } catch {
+    return undefined;
+  }
+}
 export { getRegenerateItemSchema, getSectionArray } from "./kitGenerationDomain.js";
 export { HttpError } from "./serviceErrors.js";
 
@@ -144,7 +162,8 @@ export async function generateKitService(input: {
   const demoMode = String(process.env.DEMO_MODE ?? "").toLowerCase() === "true";
   const settings = loadGeminiSettingsFromEnv();
   const correlationId = nanoid();
-  const resolved = await resolvePrompt(snapshot.industry, snapshot);
+  const bv = await fetchBrandVoiceContext(d.db, input.userId);
+  const resolved = await resolvePrompt(snapshot.industry, snapshot, bv);
 
   if (demoMode) {
     const aiContent = buildDemoKitContent(snapshot) as Record<string, unknown>;
@@ -299,7 +318,8 @@ export async function retryKitService(input: {
   const settings = loadGeminiSettingsFromEnv();
   const correlationId = nanoid();
   const nextVersion = row.rowVersion + 1;
-  const resolved = await resolvePrompt(snapshot.industry, snapshot);
+  const bv = await fetchBrandVoiceContext(d.db, row.userId);
+  const resolved = await resolvePrompt(snapshot.industry, snapshot, bv);
   const referenceImage = parseReferenceImageFromDataUrl(snapshot.reference_image);
   const demoMode = String(process.env.DEMO_MODE ?? "").toLowerCase() === "true";
 
@@ -471,7 +491,8 @@ export async function regenerateKitItemService(input: {
   const settings = loadGeminiSettingsFromEnv();
   if (!settings.apiKey) throw new HttpError(500, "Missing GEMINI_API_KEY.");
   const correlationId = nanoid();
-  const resolved = await resolvePrompt(snapshot.industry, snapshot);
+  const bv = await fetchBrandVoiceContext(d.db, row.userId);
+  const resolved = await resolvePrompt(snapshot.industry, snapshot, bv);
   const schema = getRegenerateItemSchema(input.item_type);
   const feedbackLine = input.feedback?.trim()
     ? `User feedback (must be applied): ${input.feedback.trim()}`

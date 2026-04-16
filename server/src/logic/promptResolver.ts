@@ -2,7 +2,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { industries, industryPrompts } from "../db/schema.js";
 import { campaignModeInstructionBlock } from "./campaignMode.js";
-import { composePrompt } from "./promptComposer.js";
+import { composePrompt, type BrandVoiceContext } from "./promptComposer.js";
 import type { SubmissionSnapshot } from "./constants.js";
 import { isUseMetaPrompt } from "./promptModeEnv.js";
 import { isStrictPromptTemplates } from "./promptStrictEnv.js";
@@ -69,7 +69,11 @@ export function renderPromptTemplate(template: string, snapshot: SubmissionSnaps
   });
 }
 
-export async function resolvePrompt(industryInput: string, snapshot: SubmissionSnapshot): Promise<ResolvedPrompt> {
+export async function resolvePrompt(
+  industryInput: string,
+  snapshot: SubmissionSnapshot,
+  brandVoice?: BrandVoiceContext
+): Promise<ResolvedPrompt> {
   const targetSlug = normalizeIndustrySlug(industryInput);
   const useMetaPrompt = isUseMetaPrompt();
   const hasCoreContext =
@@ -86,6 +90,7 @@ export async function resolvePrompt(industryInput: string, snapshot: SubmissionS
       snapshot,
       mode: snapshot.campaign_mode,
       useMetaPrompt: true,
+      brandVoice,
     });
     return {
       industrySlugUsed: targetSlug,
@@ -133,6 +138,7 @@ export async function resolvePrompt(industryInput: string, snapshot: SubmissionS
       snapshot,
       mode: snapshot.campaign_mode,
       useMetaPrompt: true,
+      brandVoice,
     });
     return {
       industrySlugUsed: targetSlug,
@@ -164,6 +170,7 @@ export async function resolvePrompt(industryInput: string, snapshot: SubmissionS
     snapshot,
     mode: snapshot.campaign_mode,
     useMetaPrompt: false,
+    brandVoice,
   });
 
   return {

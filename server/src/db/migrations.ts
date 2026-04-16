@@ -150,25 +150,65 @@ CREATE TABLE IF NOT EXISTS social_geni.notifications (
 CREATE INDEX IF NOT EXISTS idx_notifications_created ON social_geni.notifications (created_at DESC);
 
 CREATE TABLE IF NOT EXISTS social_geni.user_profile (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
+  id TEXT PRIMARY KEY NOT NULL,
+  user_id TEXT NOT NULL UNIQUE,
   display_name TEXT NOT NULL DEFAULT '',
   email TEXT NOT NULL DEFAULT '',
   updated_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS social_geni.app_preferences (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
+  id TEXT PRIMARY KEY NOT NULL,
+  user_id TEXT NOT NULL UNIQUE,
   compact_table BOOLEAN NOT NULL DEFAULT FALSE,
   updated_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS social_geni.brand_voice (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
+  id TEXT PRIMARY KEY NOT NULL,
+  user_id TEXT NOT NULL UNIQUE,
   pillars_json TEXT NOT NULL,
   avoid_words_json TEXT NOT NULL,
   sample_snippet TEXT NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL
 );
+
+-- Migration for existing non-functional tables
+DO $$ 
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'social_geni' AND table_name = 'user_profile' AND data_type = 'integer' AND column_name = 'id') THEN
+    DROP TABLE social_geni.user_profile;
+    CREATE TABLE social_geni.user_profile (
+      id TEXT PRIMARY KEY NOT NULL,
+      user_id TEXT NOT NULL UNIQUE,
+      display_name TEXT NOT NULL DEFAULT '',
+      email TEXT NOT NULL DEFAULT '',
+      updated_at TIMESTAMPTZ NOT NULL
+    );
+  END IF;
+  
+  IF EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'social_geni' AND table_name = 'app_preferences' AND data_type = 'integer' AND column_name = 'id') THEN
+    DROP TABLE social_geni.app_preferences;
+    CREATE TABLE social_geni.app_preferences (
+      id TEXT PRIMARY KEY NOT NULL,
+      user_id TEXT NOT NULL UNIQUE,
+      compact_table BOOLEAN NOT NULL DEFAULT FALSE,
+      updated_at TIMESTAMPTZ NOT NULL
+    );
+  END IF;
+
+  IF EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'social_geni' AND table_name = 'brand_voice' AND data_type = 'integer' AND column_name = 'id') THEN
+    DROP TABLE social_geni.brand_voice;
+    CREATE TABLE social_geni.brand_voice (
+      id TEXT PRIMARY KEY NOT NULL,
+      user_id TEXT NOT NULL UNIQUE,
+      pillars_json TEXT NOT NULL,
+      avoid_words_json TEXT NOT NULL,
+      sample_snippet TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL
+    );
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS social_geni.extras_waitlist (
   id TEXT PRIMARY KEY NOT NULL,

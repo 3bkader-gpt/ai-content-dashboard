@@ -106,20 +106,23 @@ export const notifications = socialGeni.table("notifications", {
 });
 
 export const userProfile = socialGeni.table("user_profile", {
-  id: integer("id").primaryKey(),
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().unique(),
   displayName: text("display_name").notNull().default(""),
   email: text("email").notNull().default(""),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull(),
 });
 
 export const appPreferences = socialGeni.table("app_preferences", {
-  id: integer("id").primaryKey(),
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().unique(),
   compactTable: boolean("compact_table").notNull().default(false),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull(),
 });
 
 export const brandVoice = socialGeni.table("brand_voice", {
-  id: integer("id").primaryKey(),
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().unique(),
   pillarsJson: text("pillars_json").notNull(),
   avoidWordsJson: text("avoid_words_json").notNull(),
   sampleSnippet: text("sample_snippet").notNull(),

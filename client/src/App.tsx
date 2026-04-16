@@ -10,6 +10,10 @@ import DeepContentWizard from "./pages/wizards/DeepContentWizard";
 import PricingPage from "./pages/PricingPage";
 import UserLayout from "./layout/UserLayout";
 import AdminLayout from "./layout/AdminLayout";
+import ProfilePage from "./pages/ProfilePage";
+import BrandVoicePage from "./pages/BrandVoicePage";
+import HelpPage from "./pages/HelpPage";
+import IntegrationsPage from "./pages/IntegrationsPage";
 import { useAuth } from "./auth/AuthContext";
 
 const demoMode = import.meta.env.VITE_DEMO_MODE === "true";
@@ -71,6 +75,10 @@ export default function App() {
         <Route path="/wizard/offer" element={modeLocked ? <LockedMode mode="offer" /> : <OfferProductWizard />} />
         <Route path="/wizard/deep" element={modeLocked ? <LockedMode mode="deep" /> : <DeepContentWizard />} />
         <Route path="/kits/:id" element={<KitDetail />} />
+        <Route path="/help" element={<HelpPage />} />
+        <Route path="/integrations" element={<IntegrationsPage />} />
+        <Route path="/brand-voice" element={<BrandVoicePage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Route>
 
       <Route path="/admin" element={<AdminLayout />}>
