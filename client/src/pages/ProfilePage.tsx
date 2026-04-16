@@ -24,56 +24,56 @@ export default function ProfilePage() {
     <>
       <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/40 font-headline text-xl font-bold text-on-primary ring-2 ring-primary/30">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-xl font-bold text-indigo-600 dark:text-indigo-400">
             {(displayName.trim().slice(0, 2) || "AI").toUpperCase()}
           </div>
           <div>
-            <h1 className="headline text-3xl font-black text-on-surface">Account</h1>
-            <p className="text-sm text-on-surface-variant">Studio profile · stored on the API</p>
+            <h1 className="text-3xl font-black text-gray-900 dark:text-gray-50">Account</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">Studio profile · stored on the API</p>
           </div>
         </div>
         <Link
           to="/"
-          className="rounded-xl border border-outline-variant/30 px-4 py-2 text-sm font-bold text-on-surface-variant hover:bg-surface-container-high"
+          className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-bold text-gray-600 dark:text-gray-400 dark:text-gray-500 shadow-sm transition hover:bg-gray-50 dark:bg-gray-950"
         >
           Back to dashboard
         </Link>
       </div>
 
       {message && (
-        <p className="mb-6 rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface-variant">
+        <p className="mb-6 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 shadow-sm">
           {message}
         </p>
       )}
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <section className="glass-panel lg:col-span-2 rounded-uniform border border-outline-variant/25 p-8">
-          <h2 className="headline mb-6 text-lg font-bold">Profile details</h2>
+        <section className="lg:col-span-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+          <h2 className="mb-6 text-lg font-bold text-gray-900 dark:text-gray-50">Profile details</h2>
           <div className="space-y-4">
-            <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 dark:text-gray-500">
               Display name
               <input
                 type="text"
                 value={displayName}
                 disabled={loading}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/40"
+                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 px-4 py-3 text-gray-900 dark:text-gray-50 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
             </label>
-            <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 dark:text-gray-500">
               Email
               <input
                 type="email"
                 value={email}
                 disabled={loading}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/40"
+                className="mt-2 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 px-4 py-3 text-gray-900 dark:text-gray-50 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
             </label>
             <button
               type="button"
               disabled={loading || saving}
-              className="rounded-xl bg-primary px-6 py-3 font-bold text-on-primary hover:opacity-90 disabled:opacity-50"
+              className="mt-4 rounded-xl bg-indigo-600 px-6 py-3 font-bold text-white transition hover:bg-indigo-700 disabled:opacity-50"
               onClick={() => {
                 setSaving(true);
                 setMessage(null);
@@ -91,21 +91,21 @@ export default function ProfilePage() {
             </button>
           </div>
         </section>
-        <section className="glass-panel rounded-uniform border border-outline-variant/25 p-8">
-          <h2 className="headline mb-4 text-lg font-bold">Shortcuts</h2>
+        <section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-gray-50">Shortcuts</h2>
           <ul className="space-y-2 text-sm">
             <li>
-              <Link to="/help" className="text-primary hover:underline">
+              <Link to="/help" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:underline">
                 Help & support
               </Link>
             </li>
             <li>
-              <Link to="/integrations" className="text-primary hover:underline">
+              <Link to="/integrations" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:underline">
                 Integrations
               </Link>
             </li>
             <li>
-              <Link to="/brand-voice" className="text-primary hover:underline">
+              <Link to="/brand-voice" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:underline">
                 Brand voice
               </Link>
             </li>

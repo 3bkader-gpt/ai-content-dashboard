@@ -6,8 +6,8 @@ function navClass(isActive: boolean) {
   return [
     "rounded-lg px-3 py-2 text-sm font-semibold transition",
     isActive
-      ? "bg-primary/15 text-primary dark:bg-primary/25 dark:text-secondary"
-      : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface dark:text-secondary/80 dark:hover:bg-earth-darkBg/60 dark:hover:text-secondary",
+      ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
+      : "text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:bg-gray-800 hover:text-gray-900 dark:text-gray-50",
   ].join(" ");
 }
 
@@ -50,22 +50,22 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface dark:bg-earth-darkBg dark:text-secondary">
-      <header className="sticky top-0 z-30 border-b border-outline/20 bg-surface/80 backdrop-blur dark:border-muted/35 dark:bg-earth-darkBg/80">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50">
+      <header className="sticky top-0 z-30 border-b border-gray-200 dark:border-gray-800 bg-white/80 backdrop-blur">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <div>
-            <p className="font-headline text-xl font-extrabold tracking-tight text-primary dark:text-secondary">Social Geni</p>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">Admin Console</p>
+            <p className="text-xl font-extrabold tracking-tight text-indigo-600 dark:text-indigo-400">Social Geni</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 dark:text-gray-500">Admin Console</p>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="hidden items-center gap-2 rounded-lg border border-outline/30 bg-surface-container-high px-3 py-2 text-xs font-bold text-on-surface md:inline-flex dark:border-brand-muted/40 dark:bg-earth-darkCard dark:text-brand-darkText">
+            <div className="hidden items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 py-2 text-xs font-bold text-gray-900 dark:text-gray-50 md:inline-flex">
               <span
                 className={[
                   "material-symbols-outlined text-sm",
-                  apiStatus === "active" ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.55)]" : "",
-                  apiStatus === "offline" ? "text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.55)]" : "",
-                  apiStatus === "checking" ? "text-on-surface-variant" : "",
+                  apiStatus === "active" ? "text-emerald-500" : "",
+                  apiStatus === "offline" ? "text-red-500" : "",
+                  apiStatus === "checking" ? "text-gray-400 dark:text-gray-500" : "",
                 ].join(" ")}
                 aria-hidden
               >
@@ -76,7 +76,7 @@ export default function AdminLayout() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="inline-flex items-center gap-2 rounded-lg border border-outline/30 bg-surface-container-high px-3 py-2 text-xs font-bold text-on-surface transition hover:bg-surface-container-highest focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface dark:border-muted/40 dark:bg-surface-container-high dark:text-secondary"
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 py-2 text-xs font-bold text-gray-900 dark:text-gray-50 transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-indigo-400/40 focus-visible:ring-offset-2"
               aria-label="Toggle theme"
               title={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
             >
@@ -95,7 +95,7 @@ export default function AdminLayout() {
               </NavLink>
               <Link
                 to="/wizard"
-                className="rounded-lg border border-outline/30 px-3 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+                className="rounded-lg border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 transition hover:bg-gray-100 dark:bg-gray-800 hover:text-gray-900 dark:text-gray-50"
               >
                 Open User App
               </Link>

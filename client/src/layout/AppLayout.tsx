@@ -40,10 +40,10 @@ function formatRelativeTime(iso: string): string {
 
 function navLinkClass(active: boolean) {
   return [
-    "flex items-center gap-3 rounded-xl px-4 py-3 font-manrope text-xs font-semibold uppercase tracking-wider transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
+    "flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-all duration-300",
     active
-      ? "scale-[1.02] border-e-2 border-primary bg-primary/15 text-primary dark:border-secondary dark:bg-primary/20 dark:text-secondary"
-      : "text-on-surface-variant hover:bg-surface-container-high/70 hover:text-on-surface dark:text-secondary/80 dark:hover:bg-earth-darkBg/55 dark:hover:text-secondary",
+      ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-e-2 border-indigo-600"
+      : "text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:bg-gray-800 hover:text-gray-900 dark:text-gray-50",
   ].join(" ");
 }
 
@@ -176,7 +176,7 @@ export default function AppLayout({
   const onNavItemClick = () => setMobileNavOpen(false);
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-surface text-on-surface dark:bg-earth-darkBg dark:text-secondary">
+    <div className="min-h-screen overflow-x-hidden bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50">
       <GlobalSearchOverlay
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
@@ -196,7 +196,7 @@ export default function AppLayout({
 
       <aside
         className={[
-          "fixed start-0 top-0 z-50 flex h-screen w-64 flex-col border-e border-outline/25 bg-surface-container-low/70 px-4 py-8 shadow-[20px_0_40px_rgb(var(--c-on-surface)/0.2)] backdrop-blur-3xl transition-transform duration-300 dark:border-muted/40 dark:bg-surface-container-high/85",
+          "fixed start-0 top-0 z-50 flex h-screen w-64 flex-col border-e border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-8 shadow-sm transition-transform duration-300",
           mobileNavOpen ? "translate-x-0" : "-translate-x-full",
           "md:translate-x-0",
         ].join(" ")}
@@ -204,16 +204,16 @@ export default function AppLayout({
         <button
           type="button"
           onClick={() => setMobileNavOpen(false)}
-          className="mb-3 ms-auto rounded-lg p-2 text-on-surface-variant hover:bg-surface-container-high md:hidden"
+          className="mb-3 ms-auto rounded-lg p-2 text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:bg-gray-800 md:hidden"
           aria-label="Close menu"
         >
           {icon("close")}
         </button>
         <div className="mb-10 px-4">
-          <h1 className="font-headline text-2xl font-bold tracking-tighter text-primary">
+          <h1 className="text-2xl font-bold tracking-tighter text-indigo-600 dark:text-indigo-400">
             Social Geni
           </h1>
-          <p className="mt-1 font-manrope text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant dark:text-secondary/75">
+          <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 dark:text-gray-500">
             AI Content Kits in Minutes
           </p>
         </div>
@@ -231,22 +231,22 @@ export default function AppLayout({
             <span>Content Wizard</span>
           </NavLink>
         </nav>
-        <div className="mt-auto space-y-2 border-t border-outline/25 pt-6">
+        <div className="mt-auto space-y-2 border-t border-gray-100 dark:border-gray-800 pt-6">
           <Link
             to="/wizard"
-            className="mb-6 block w-full scale-[1.02] rounded-xl bg-primary py-3 text-center font-headline font-bold text-on-primary shadow-lg shadow-primary-container/20 transition-opacity hover:opacity-90 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            className="mb-6 block w-full rounded-xl bg-indigo-600 py-3 text-center font-bold text-white transition hover:opacity-90"
           >
             Create new Kit
           </Link>
         </div>
       </aside>
 
-      <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-outline/20 bg-surface/65 px-4 backdrop-blur-xl dark:border-muted/35 dark:bg-earth-darkBg/80 md:start-64 md:w-[calc(100%-16rem)] md:px-8">
+      <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white/65 px-4 backdrop-blur-xl md:start-64 md:w-[calc(100%-16rem)] md:px-8">
         <div className="flex min-w-0 items-center gap-2 md:gap-4">
           <button
             type="button"
             onClick={() => setMobileNavOpen(true)}
-            className="rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high/70 focus-visible:ring-2 focus-visible:ring-primary/40 md:hidden"
+            className="rounded-lg p-2 text-gray-500 dark:text-gray-400 dark:text-gray-500 transition-colors hover:bg-gray-100 dark:bg-gray-800 focus-visible:ring-2 focus-visible:ring-indigo-400 md:hidden"
             aria-label="Open menu"
           >
             {icon("menu")}
@@ -254,13 +254,13 @@ export default function AppLayout({
           <button
             type="button"
             onClick={openSearch}
-            className="rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high/70 focus-visible:ring-2 focus-visible:ring-primary/40 sm:hidden"
+            className="rounded-lg p-2 text-gray-500 dark:text-gray-400 dark:text-gray-500 transition-colors hover:bg-gray-100 dark:bg-gray-800 focus-visible:ring-2 focus-visible:ring-indigo-400 sm:hidden"
             aria-label="Open search"
           >
             {icon("search")}
           </button>
           <div className="group relative hidden sm:block">
-            <span className="material-symbols-outlined pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant">
+            <span className="material-symbols-outlined pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500">
               search
             </span>
             <input
@@ -268,39 +268,39 @@ export default function AppLayout({
               readOnly
               onFocus={openSearch}
               onClick={openSearch}
-              className="w-32 cursor-pointer rounded-full border-none bg-surface-container-lowest py-1.5 ps-10 pe-4 text-sm text-on-surface placeholder:text-on-surface-variant/60 transition-all focus:ring-2 focus:ring-primary/45 dark:bg-surface-container-high/80 dark:text-secondary sm:w-56 md:w-64"
+              className="w-32 cursor-pointer rounded-full border-none bg-gray-100 dark:bg-gray-800 py-1.5 ps-10 pe-4 text-sm text-gray-900 dark:text-gray-50 placeholder:text-gray-500 dark:placeholder:text-gray-400 dark:text-gray-500 transition-all focus:ring-2 focus:ring-indigo-400 sm:w-56 md:w-64"
               placeholder="Search kits…"
               aria-label="Open search"
               aria-haspopup="dialog"
               aria-expanded={searchOpen}
             />
           </div>
-          <div className="mx-1 hidden h-4 w-px bg-outline/35 sm:block sm:mx-2" />
+          <div className="mx-1 hidden h-4 w-px bg-gray-200 sm:block sm:mx-2" />
           <span
             className={[
-              "font-manrope text-sm font-bold tracking-tight transition-colors hidden sm:inline",
-              apiStatus === "active" ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.55)]" : "",
-              apiStatus === "offline" ? "text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.55)]" : "",
-              apiStatus === "checking" ? "text-on-surface-variant" : "",
+              "text-sm font-bold tracking-tight transition-colors hidden sm:inline",
+              apiStatus === "active" ? "text-green-500" : "",
+              apiStatus === "offline" ? "text-red-500" : "",
+              apiStatus === "checking" ? "text-gray-400 dark:text-gray-500" : "",
             ]
               .filter(Boolean)
-              .join(" ")}
+            .join(" ")}
           >
             API: {apiStatus === "active" ? "Active" : apiStatus === "offline" ? "Offline" : "Checking..."}
           </span>
           <span
             className={[
-              "font-manrope text-xs font-bold tracking-tight transition-colors sm:hidden",
-              apiStatus === "active" ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.55)]" : "",
-              apiStatus === "offline" ? "text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.55)]" : "",
-              apiStatus === "checking" ? "text-on-surface-variant" : "",
+              "text-xs font-bold tracking-tight transition-colors sm:hidden",
+              apiStatus === "active" ? "text-green-500" : "",
+              apiStatus === "offline" ? "text-red-500" : "",
+              apiStatus === "checking" ? "text-gray-400 dark:text-gray-500" : "",
             ]
               .filter(Boolean)
-              .join(" ")}
+            .join(" ")}
           >
             {apiStatus === "active" ? "API ON" : apiStatus === "offline" ? "API OFF" : "API…"}
           </span>
-          <div className="hidden items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary lg:flex">
+          <div className="hidden items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 lg:flex">
             <span className="material-symbols-outlined text-sm">north_east</span>
             Start from Content Wizard
           </div>
@@ -309,7 +309,7 @@ export default function AppLayout({
           <button
             type="button"
             onClick={toggleTheme}
-            className="inline-flex items-center gap-2 rounded-lg border border-outline/30 bg-surface-container-high px-3 py-2 text-xs font-bold text-on-surface transition hover:bg-surface-container-highest focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface dark:border-outline/30 dark:bg-surface-container-high dark:text-secondary"
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 py-2 text-xs font-bold text-gray-900 dark:text-gray-50 transition hover:bg-gray-50 dark:bg-gray-950 focus-visible:ring-2 focus-visible:ring-indigo-400"
             aria-label="Toggle theme"
             title={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
@@ -322,7 +322,7 @@ export default function AppLayout({
             <div className="relative" ref={notifWrap}>
               <button
                 type="button"
-                className="relative rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high/70 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                className="relative rounded-lg p-2 text-gray-500 dark:text-gray-400 dark:text-gray-500 transition-colors hover:bg-gray-100 dark:bg-gray-800 focus-visible:ring-2 focus-visible:ring-indigo-400"
                 aria-label="Notifications"
                 aria-expanded={notifOpen}
                 onClick={() => {
@@ -333,20 +333,20 @@ export default function AppLayout({
               >
                 {icon("notifications")}
                 {notifications.some((n) => !n.read) && (
-                  <span className="absolute end-2 top-2 h-2 w-2 rounded-full border border-surface bg-secondary" />
+                  <span className="absolute end-2 top-2 h-2 w-2 rounded-full border border-white bg-indigo-600" />
                 )}
               </button>
               {notifOpen && (
                 <div
-                  className="absolute end-0 top-full z-[70] mt-2 w-96 max-w-[calc(100vw-2rem)] rounded-2xl border border-outline-variant/35 bg-surface-container-high/95 p-4 shadow-2xl backdrop-blur-xl dark:border-muted/40 dark:bg-surface-container-high/95"
+                  className="absolute end-0 top-full z-[70] mt-2 w-96 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm"
                   role="region"
                   aria-label="Notifications"
                 >
                   <div className="mb-3 flex items-center justify-between">
-                    <h3 className="font-headline text-sm font-bold">Notifications</h3>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-50">Notifications</h3>
                     <button
                       type="button"
-                      className="text-xs font-bold text-primary"
+                      className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700"
                       onClick={() => {
                         markAllNotificationsRead()
                           .then(() => listNotifications())
@@ -359,18 +359,18 @@ export default function AppLayout({
                   </div>
                   <ul className="max-h-72 space-y-2 overflow-y-auto text-sm">
                     {notifications.length === 0 ? (
-                      <li className="rounded-xl p-4 text-center text-on-surface-variant">No notifications yet.</li>
+                      <li className="rounded-xl p-4 text-center text-gray-500 dark:text-gray-400 dark:text-gray-500">No notifications yet.</li>
                     ) : (
                       notifications.map((n) => (
                         <li
                           key={n.id}
                           className={
-                            "rounded-xl p-3 " + (n.read ? "hover:bg-surface-container-low/50" : "bg-surface-container-low")
+                            "rounded-xl p-3 " + (n.read ? "hover:bg-gray-50 dark:bg-gray-950" : "bg-indigo-50/50")
                           }
                         >
-                          <p className="font-semibold text-on-surface">{n.title}</p>
-                          <p className="text-on-surface-variant">{n.body}</p>
-                          <p className="mt-1 text-[10px] text-on-surface-variant/70">{formatRelativeTime(n.created_at)}</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-50">{n.title}</p>
+                          <p className="text-gray-600 dark:text-gray-400 dark:text-gray-500">{n.body}</p>
+                          <p className="mt-1 text-[10px] text-gray-400 dark:text-gray-500">{formatRelativeTime(n.created_at)}</p>
                         </li>
                       ))
                     )}
@@ -382,7 +382,7 @@ export default function AppLayout({
             <div className="relative hidden sm:block" ref={settingsWrap}>
               <button
                 type="button"
-                className="rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high/70 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                className="rounded-lg p-2 text-gray-500 dark:text-gray-400 dark:text-gray-500 transition-colors hover:bg-gray-100 dark:bg-gray-800 focus-visible:ring-2 focus-visible:ring-indigo-400"
                 aria-label="Quick settings"
                 aria-expanded={settingsOpen}
                 onClick={() => {
@@ -395,13 +395,13 @@ export default function AppLayout({
               </button>
               {settingsOpen && (
                 <div
-                  className="absolute end-0 top-full z-[70] mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-outline-variant/35 bg-surface-container-high/95 p-4 shadow-2xl backdrop-blur-xl dark:border-muted/40 dark:bg-surface-container-high/95"
+                  className="absolute end-0 top-full z-[70] mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm"
                   role="region"
                   aria-label="Quick settings"
                 >
-                  <h3 className="mb-4 font-headline text-sm font-bold">Quick settings</h3>
+                  <h3 className="mb-4 text-sm font-bold text-gray-900 dark:text-gray-50">Quick settings</h3>
                   <label className="flex cursor-pointer items-center justify-between gap-3 py-2 text-sm">
-                    <span className="text-on-surface-variant">Compact table rows</span>
+                    <span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">Compact table rows</span>
                     <input
                       type="checkbox"
                       checked={compactTable}
@@ -415,10 +415,10 @@ export default function AppLayout({
                         }
                         updatePreferences(v).catch(() => {});
                       }}
-                      className="h-4 w-4 rounded border-outline-variant text-primary"
+                      className="h-4 w-4 rounded border-gray-300 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-600"
                     />
                   </label>
-                  <p className="mt-2 text-xs text-on-surface-variant/80">
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
                     Synced to the studio API (falls back to this device if offline).
                   </p>
                 </div>
@@ -426,10 +426,10 @@ export default function AppLayout({
             </div>
           </div>
 
-          <div className="relative flex items-center gap-2 border-s border-outline/25 ps-2 sm:gap-3 sm:ps-4" ref={userWrap}>
+          <div className="relative flex items-center gap-2 border-s border-gray-200 dark:border-gray-800 ps-2 sm:gap-3 sm:ps-4" ref={userWrap}>
             <button
               type="button"
-              className="flex items-center gap-3 rounded-lg px-1 text-end outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              className="flex items-center gap-3 rounded-lg px-1 text-end outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
               aria-expanded={userOpen}
               aria-haspopup="menu"
               onClick={() => {
@@ -439,23 +439,23 @@ export default function AppLayout({
               }}
             >
               <div className="hidden sm:block">
-                <p className="font-manrope text-sm font-bold text-on-surface">{profileName}</p>
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant dark:text-secondary/75">Social Geni</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-50">{profileName}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400 dark:text-gray-500">Social Geni</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20 font-headline text-sm font-bold text-on-primary ring-2 ring-primary/30">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-600 dark:text-indigo-400">
                 {(profileName.trim().slice(0, 2) || "AI").toUpperCase()}
               </div>
             </button>
             {userOpen && (
               <div
-                className="absolute end-0 top-full z-[70] mt-2 w-56 rounded-2xl border border-outline-variant/35 bg-surface-container-high/95 py-2 shadow-2xl backdrop-blur-xl dark:border-muted/40 dark:bg-surface-container-high/95"
+                className="absolute end-0 top-full z-[70] mt-2 w-56 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 py-2 shadow-sm"
                 role="menu"
                 aria-label="Account menu"
               >
                 <Link
                   to="/admin/analytics"
                   role="menuitem"
-                  className="block px-4 py-2.5 text-sm text-on-surface-variant hover:bg-surface-container-low focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-inset"
+                  className="block px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:bg-gray-950 hover:text-gray-900 dark:text-gray-50"
                   onClick={() => setUserOpen(false)}
                 >
                   Admin analytics

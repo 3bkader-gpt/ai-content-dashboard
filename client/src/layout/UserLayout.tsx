@@ -7,8 +7,8 @@ function linkClass(isActive: boolean) {
   return [
     "rounded-lg px-3 py-2 text-sm font-semibold transition",
     isActive
-      ? "bg-primary/15 text-primary dark:bg-primary/25 dark:text-secondary"
-      : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface dark:text-secondary/80 dark:hover:bg-earth-darkBg/60 dark:hover:text-secondary",
+      ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
+      : "text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:bg-gray-800 hover:text-gray-900 dark:text-gray-50",
   ].join(" ");
 }
 
@@ -31,21 +31,21 @@ export default function UserLayout({ demoBanner }: { demoBanner?: ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface dark:bg-earth-darkBg dark:text-secondary">
-      <header className="sticky top-0 z-30 border-b border-outline/20 bg-surface/80 backdrop-blur dark:border-muted/35 dark:bg-earth-darkBg/80">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50">
+      <header className="sticky top-0 z-30 border-b border-gray-200 dark:border-gray-800 bg-white/80 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link to="/" className="font-headline text-xl font-extrabold tracking-tight text-primary dark:text-secondary">
+          <Link to="/" className="text-xl font-extrabold tracking-tight text-indigo-600 dark:text-indigo-400">
             Social Geni
           </Link>
           <div className="flex items-center gap-2">
-            <span className="hidden rounded-lg border border-outline/25 bg-surface-container-high px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant sm:inline-flex">
+            <span className="hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 dark:text-gray-500 sm:inline-flex">
               Plan: {entitlements?.plan_code ?? "free"}
             </span>
             {session ? (
               <button
                 type="button"
                 onClick={() => void signOut()}
-                className="inline-flex items-center gap-2 rounded-lg border border-outline/30 bg-surface-container-high px-3 py-2 text-xs font-bold text-on-surface transition hover:bg-surface-container-highest focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 py-2 text-xs font-bold text-red-500 transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-indigo-400/40 focus-visible:ring-offset-2"
               >
                 <span className="material-symbols-outlined text-sm">logout</span>
                 <span className="hidden sm:inline">Logout</span>
@@ -54,7 +54,7 @@ export default function UserLayout({ demoBanner }: { demoBanner?: ReactNode }) {
               <button
                 type="button"
                 onClick={() => void signInWithGoogle()}
-                className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-bold text-primary transition hover:bg-primary/20 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-indigo-400/40 focus-visible:ring-offset-2"
               >
                 <span className="material-symbols-outlined text-sm">login</span>
                 <span className="hidden sm:inline">Sign in</span>
@@ -63,7 +63,7 @@ export default function UserLayout({ demoBanner }: { demoBanner?: ReactNode }) {
             <button
               type="button"
               onClick={toggleTheme}
-              className="inline-flex items-center gap-2 rounded-lg border border-outline/30 bg-surface-container-high px-3 py-2 text-xs font-bold text-on-surface transition hover:bg-surface-container-highest focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface dark:border-muted/40 dark:bg-surface-container-high dark:text-secondary"
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 py-2 text-xs font-bold text-gray-900 dark:text-gray-50 transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-indigo-400/40 focus-visible:ring-offset-2"
               aria-label="Toggle theme"
               title={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
             >
