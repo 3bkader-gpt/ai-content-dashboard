@@ -141,8 +141,12 @@ export default function WizardAnalyticsPage() {
                       </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </section>
     </div>
   );
+}
