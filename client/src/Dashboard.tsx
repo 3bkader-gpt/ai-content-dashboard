@@ -45,7 +45,7 @@ export default function Dashboard() {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm text-gray-900 dark:text-gray-50 shadow-sm"
+            className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#111] px-4 py-3 text-sm text-gray-900 dark:text-gray-100 shadow-xl"
             role="status"
           >
             {t.message}
@@ -53,140 +53,99 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <section className="mb-8 flex flex-wrap items-end justify-between gap-4 md:mb-12 md:gap-6">
+      <section className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-6 md:mb-14">
         <div>
-          <h2 className="mb-2 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-gray-50 md:text-4xl">Dashboard</h2>
-          <p className="text-base text-gray-600 dark:text-gray-400 dark:text-gray-500 md:text-lg">Open past kits quickly, or start a new campaign from the wizard.</p>
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-4xl">Dashboard</h2>
+          <p className="mt-2 text-base text-gray-500 dark:text-gray-400">Open past kits efficiently, or launch a new campaign pipeline.</p>
         </div>
-        <div className="flex w-full gap-3 sm:w-auto sm:gap-4">
-          <div className="flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 shadow-sm">
-            <div className="h-2 w-2 animate-pulse rounded-full bg-indigo-50 dark:bg-indigo-900/300 shadow-[0_0_8px_rgba(99,102,241,0.55)]" />
-            <span className="text-sm font-semibold tracking-tight text-gray-900 dark:text-gray-50">Records: {kits?.length ?? "…"}</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="mb-10 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-sm sm:p-6 md:p-10">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-xl">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400">Start here</p>
-            <h3 className="mt-2 text-xl font-extrabold text-gray-900 dark:text-gray-50 sm:text-2xl md:text-3xl">New campaign</h3>
-            <p className="mt-2 text-gray-600 dark:text-gray-400 dark:text-gray-500">
-              Pick a flow — social, offer, or deep content — then generate your kit in minutes.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Link
-                to="/wizard/social"
-                className="rounded-full border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-100 dark:bg-gray-800"
-              >
-                Social
-              </Link>
-              <Link
-                to="/wizard/offer"
-                className="rounded-full border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-100 dark:bg-gray-800"
-              >
-                Offer
-              </Link>
-              <Link
-                to="/wizard/deep"
-                className="rounded-full border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-100 dark:bg-gray-800"
-              >
-                Deep
-              </Link>
+        <div className="flex w-full sm:w-auto">
+          <div className="flex items-center gap-2.5 rounded-full border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.03] px-3.5 py-1.5 shadow-sm">
+            <div className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </div>
-          </div>
-          <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-            <Link
-              to="/wizard"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-xs font-bold uppercase tracking-widest text-white shadow-sm transition hover:bg-indigo-700 hover:scale-[1.02] sm:w-auto sm:px-8 sm:py-4 sm:text-sm focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
-            >
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                rocket_launch
-              </span>
-              Start new campaign
-            </Link>
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Total Kits: <strong className="text-gray-900 dark:text-white ml-0.5">{kits?.length ?? "—"}</strong></span>
           </div>
         </div>
       </section>
 
-      <section className="mb-12 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-        <div className="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 shadow-sm transition-transform duration-500 hover:scale-[1.01]">
-          <div className="absolute -end-16 -top-16 h-32 w-32 rounded-full bg-indigo-100 blur-3xl" />
-          <div className="relative z-10">
-            <div className="mb-4 flex items-start justify-between">
-              <div className="rounded-xl bg-indigo-50 dark:bg-indigo-900/30 p-3">
-                <span className="material-symbols-outlined text-indigo-600 dark:text-indigo-400" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  inventory_2
-                </span>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <section className="lg:col-span-2 relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#111] shadow-sm p-6 sm:p-8">
+          <div className="absolute top-0 right-0 p-8 opacity-10 dark:opacity-[0.03] pointer-events-none">
+            <span className="material-symbols-outlined text-[120px] -m-8">rocket_launch</span>
+          </div>
+          
+          <div className="relative z-10 flex flex-col h-full justify-between">
+            <div className="max-w-md">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 dark:border-indigo-500/20 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 mb-4">
+                <span className="material-symbols-outlined text-[12px] text-indigo-600 dark:text-indigo-400">bolt</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Start Here</span>
               </div>
-              <span className="text-xs font-bold uppercase tracking-widest text-indigo-500">Total</span>
+              <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">Create new campaign</h3>
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                Launch a social, offer, or deep content generator flow to build your next kit in minutes.
+              </p>
+              
+              <div className="mt-6 flex flex-wrap gap-2">
+                <Link to="/wizard/social" className="rounded-md border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Social Flow</Link>
+                <Link to="/wizard/offer" className="rounded-md border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Offer Flow</Link>
+              </div>
             </div>
-            <p className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 dark:text-gray-500">Kit count</p>
-            <h3 className="text-5xl font-extrabold tracking-tighter text-gray-900 dark:text-gray-50">{stats.total}</h3>
-            <div className="mt-6 flex h-12 items-end gap-1">
-              <div className="relative h-4 w-full overflow-hidden rounded-full bg-indigo-100">
-                <div
-                  className="absolute inset-y-0 start-0 bg-indigo-50 dark:bg-indigo-900/300 shadow-[0_0_15px_rgba(99,102,241,0.55)]"
-                  style={{ width: `${stats.barPct}%` }}
-                />
+            
+            <div className="mt-8 pt-6 border-t border-gray-100 dark:border-white/[0.05]">
+              <Link
+                to="/wizard"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-gray-900 text-white dark:bg-white dark:text-black px-6 py-3.5 text-sm font-semibold shadow-sm hover:scale-[1.02] active:scale-95 transition-all w-full sm:w-auto"
+              >
+                Launch Wizard
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <div className="flex flex-col gap-6">
+          <div className="group relative rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#111] shadow-sm p-6 sm:p-8 flex-1">
+            <div className="flex flex-col h-full justify-between">
+              <div>
+                <div className="mb-4 flex items-start justify-between">
+                  <div className="rounded-lg bg-gray-100 dark:bg-white/5 p-2">
+                    <span className="material-symbols-outlined text-[20px] text-gray-700 dark:text-gray-300">folder_open</span>
+                  </div>
+                </div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-500 mb-1">Kit Count</p>
+                <h3 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">{stats.total}</h3>
+              </div>
+              <div className="mt-6 flex h-2 items-end">
+                <div className="relative h-1 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
+                  <div
+                    className="absolute inset-y-0 start-0 bg-gray-800 dark:bg-white/60 transition-all duration-1000"
+                    style={{ width: `${stats.barPct}%` }}
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 shadow-sm transition-transform duration-500 hover:scale-[1.01]">
-          <div className="absolute -end-16 -top-16 h-32 w-32 rounded-full bg-green-100 blur-3xl" />
-          <div className="relative z-10">
-            <div className="mb-4 flex items-start justify-between">
-              <div className="rounded-xl bg-green-50 p-3">
-                <span className="material-symbols-outlined text-green-600" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  verified
-                </span>
+          <div className="group relative rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#111] shadow-sm p-6 sm:p-8 flex-1">
+            <div className="flex flex-col h-full justify-between">
+              <div>
+                <div className="mb-4 flex items-start justify-between">
+                  <div className="rounded-lg bg-emerald-50 dark:bg-emerald-500/10 p-2">
+                    <span className="material-symbols-outlined text-[20px] text-emerald-600 dark:text-emerald-400">check_circle</span>
+                  </div>
+                </div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-500 mb-1">Success Rate</p>
+                <h3 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
+                  {kits?.length ? `${stats.successRate}%` : "—"}
+                </h3>
               </div>
-              <span className="text-xs font-bold uppercase tracking-widest text-green-600">Complete</span>
+              <p className="mt-4 text-xs font-medium text-gray-500 dark:text-gray-500">
+                Delivered successfully: <span className="text-gray-700 dark:text-gray-300">{stats.done} of {stats.total || 0}</span>
+              </p>
             </div>
-            <p className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 dark:text-gray-500">Success rate</p>
-            <h3 className="text-5xl font-extrabold tracking-tighter text-gray-900 dark:text-gray-50">
-              {kits?.length ? `${stats.successRate}%` : "—"}
-            </h3>
-            <p className="mt-4 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
-              Delivered successfully: {stats.done} of {stats.total || 0}
-            </p>
           </div>
         </div>
-      </section>
-
-      <section className="mt-12 grid grid-cols-1 gap-8">
-        <div className="group relative rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm md:p-10">
-          <div className="absolute end-10 top-10 opacity-5 transition-opacity group-hover:opacity-10">
-            <span className="material-symbols-outlined text-8xl text-indigo-600 dark:text-indigo-400" style={{ fontVariationSettings: "'FILL' 1" }}>
-              auto_fix_high
-            </span>
-          </div>
-          <h4 className="mb-4 text-2xl font-bold text-gray-900 dark:text-gray-50">Start from the wizard</h4>
-          <p className="mb-6 max-w-2xl text-gray-600 dark:text-gray-400 dark:text-gray-500">
-            Enter brand details, choose the right wizard path, and generate your full content plan from one clear flow.
-          </p>
-          <Link
-            to="/wizard"
-            className="inline-flex items-center gap-2 rounded-lg text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 transition-all hover:gap-4 focus-visible:ring-2 focus-visible:ring-indigo-500"
-          >
-            Open wizard
-            <span className="material-symbols-outlined">arrow_forward</span>
-          </Link>
-        </div>
-      </section>
-
-      <div className="fixed bottom-4 end-4 z-50 sm:bottom-6 sm:end-6 md:bottom-10 md:end-10">
-        <Link
-          to="/wizard"
-          className="flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg transition-all hover:scale-105 hover:bg-indigo-700 sm:gap-3 sm:px-6 sm:py-4 sm:text-base active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
-        >
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0, 'wght' 700" }}>
-            add
-          </span>
-          Create new kit
-        </Link>
       </div>
     </>
   );
