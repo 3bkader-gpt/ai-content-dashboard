@@ -4,10 +4,10 @@ import { getHealth } from "../api/misc";
 
 function navClass(isActive: boolean) {
   return [
-    "rounded-lg px-3 py-2 text-sm font-semibold transition",
+    "rounded-xl px-3 py-2 text-sm font-medium transition-colors",
     isActive
-      ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
-      : "text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:bg-gray-800 hover:text-gray-900 dark:text-gray-50",
+      ? "text-gray-900 dark:text-white bg-gray-100/80 dark:bg-white/10"
+      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5",
   ].join(" ");
 }
 
@@ -50,65 +50,73 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50">
-      <header className="sticky top-0 z-30 border-b border-gray-200 dark:border-gray-800 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <div>
-            <p className="text-xl font-extrabold tracking-tight text-indigo-600 dark:text-indigo-400">Social Geni</p>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 dark:text-gray-500">Admin Console</p>
+    <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 antialiased selection:bg-indigo-100 dark:selection:bg-indigo-500/30 selection:text-indigo-900 dark:selection:text-indigo-100">
+      <header className="sticky top-0 z-30 border-b border-gray-200/80 dark:border-white/[0.08] bg-white/70 dark:bg-black/70 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-[70rem] items-center justify-between px-4 h-16 sm:px-6 md:px-8">
+          
+          <div className="flex items-center gap-6">
+            <Link to="/admin" className="flex items-center gap-2.5 group">
+              <div className="flex items-center justify-center w-7 h-7 rounded bg-gray-900 dark:bg-white text-white dark:text-black shadow-sm group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span>
+              </div>
+              <div className="flex flex-col">
+                 <span className="text-sm font-semibold tracking-tight text-gray-900 dark:text-white leading-tight">
+                   SocialGeni
+                 </span>
+                 <span className="text-[9px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 leading-tight">Admin Console</span>
+              </div>
+            </Link>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="hidden items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 py-2 text-xs font-bold text-gray-900 dark:text-gray-50 md:inline-flex">
+          <div className="flex items-center gap-3">
+            <div className="hidden items-center gap-2 rounded-full border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-2.5 py-1 text-xs font-semibold shadow-sm sm:flex">
               <span
                 className={[
-                  "material-symbols-outlined text-sm",
-                  apiStatus === "active" ? "text-emerald-500" : "",
-                  apiStatus === "offline" ? "text-red-500" : "",
-                  apiStatus === "checking" ? "text-gray-400 dark:text-gray-500" : "",
+                  "h-1.5 w-1.5 rounded-full flex-shrink-0",
+                  apiStatus === "active" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "",
+                  apiStatus === "offline" ? "bg-red-500" : "",
+                  apiStatus === "checking" ? "bg-gray-400" : "",
                 ].join(" ")}
-                aria-hidden
-              >
-                radio_button_checked
+              />
+              <span className="text-[10px] uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                {apiStatus === "active" ? "API ON" : apiStatus === "offline" ? "API OFF" : "API..."}
               </span>
-              {apiStatus === "active" ? "API ON" : apiStatus === "offline" ? "API OFF" : "API…"}
             </div>
+            
+            <div className="h-4 w-px bg-gray-200 dark:bg-white/10 hidden sm:block mx-1"></div>
+
             <button
               type="button"
               onClick={toggleTheme}
-              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 py-2 text-xs font-bold text-gray-900 dark:text-gray-50 transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-indigo-400/40 focus-visible:ring-offset-2"
+              className="p-1.5 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-white/20"
               aria-label="Toggle theme"
               title={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
             >
-              <span className="material-symbols-outlined text-sm">{themeMode === "dark" ? "light_mode" : "dark_mode"}</span>
-              <span className="hidden sm:inline">{themeMode === "dark" ? "Light" : "Dark"}</span>
+              <span className="material-symbols-outlined text-[20px]">{themeMode === "dark" ? "light_mode" : "dark_mode"}</span>
             </button>
+
+            <div className="h-4 w-px bg-gray-200 dark:bg-white/10 hidden sm:block mx-1"></div>
+
             <nav className="flex items-center gap-1" aria-label="Admin navigation">
-              <NavLink to="/admin/analytics" className={({ isActive }) => navClass(isActive)}>
-                Analytics
-              </NavLink>
-              <NavLink to="/admin/plans" className={({ isActive }) => navClass(isActive)}>
-                Plans
-              </NavLink>
-              <NavLink to="/admin/generated-kits" className={({ isActive }) => navClass(isActive)}>
-                Kits Review
-              </NavLink>
-              <Link
-                to="/wizard"
-                className="rounded-lg border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 transition hover:bg-gray-100 dark:bg-gray-800 hover:text-gray-900 dark:text-gray-50"
-              >
-                Open User App
-              </Link>
+              <NavLink to="/admin/analytics" className={({ isActive }) => navClass(isActive)}>Analytics</NavLink>
+              <NavLink to="/admin/plans" className={({ isActive }) => navClass(isActive)}>Plans</NavLink>
+              <NavLink to="/admin/generated-kits" className={({ isActive }) => navClass(isActive)}>Kits</NavLink>
             </nav>
+            
+            <Link
+              to="/wizard"
+              className="ml-2 hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-1.5 text-xs font-semibold text-gray-900 dark:text-white transition-all hover:bg-gray-50 dark:hover:bg-white/10 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-white/20"
+            >
+              Exit Admin
+              <span className="material-symbols-outlined text-[14px]">logout</span>
+            </Link>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl px-2 pb-10 pt-4 sm:px-4 sm:pt-6">
+      <main className="mx-auto w-full max-w-[70rem] px-4 pb-16 pt-8 sm:px-6 md:px-8 sm:pt-12">
         <Outlet />
       </main>
     </div>
   );
 }
-
-

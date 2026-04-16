@@ -19,19 +19,30 @@ export default function App() {
   const plan = entitlements?.plan_code ?? "free";
   const modeLocked = plan === "free";
   const LockedMode = ({ mode }: { mode: "offer" | "deep" }) => (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
-      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-50">🔒 {mode === "offer" ? "Offer" : "Deep"} mode is locked</h2>
-      <p className="mt-2 text-gray-600 dark:text-gray-400 dark:text-gray-500">
-        This mode is available in Creator Pro and Agency plans. Upgrade your account to unlock it.
-      </p>
-      <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Current plan: {plan}</p>
-      <Link
-        to="/pricing"
-        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-bold text-white transition hover:opacity-90"
-      >
-        <span className="material-symbols-outlined text-base">rocket_launch</span>
-        Upgrade plan
-      </Link>
+    <div className="flex flex-col items-center justify-center min-h-[50vh]">
+      <div className="w-full max-w-md rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#111] p-8 shadow-sm text-center">
+        <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-sm">
+           <span className="material-symbols-outlined text-gray-900 dark:text-white text-2xl">lock</span>
+        </div>
+        <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">
+          {mode === "offer" ? "Offer Engine" : "Deep Content"} Locked
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-6">
+          This advanced capability is exclusively available on Creator Pro and Agency plans. Upgrade your studio to unlock it immediately.
+        </p>
+        <div className="flex flex-col items-center gap-3">
+          <Link
+            to="/pricing"
+            className="inline-flex w-full justify-center items-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 active:scale-[0.98]"
+          >
+            <span className="material-symbols-outlined text-[18px]">bolt</span>
+            Upgrade Plan
+          </Link>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+            Current Plan: {plan}
+          </p>
+        </div>
+      </div>
     </div>
   );
   return (
