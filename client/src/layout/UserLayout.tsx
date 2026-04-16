@@ -5,10 +5,10 @@ import { useAuth } from "../auth/AuthContext";
 
 function linkClass(isActive: boolean) {
   return [
-    "rounded-lg px-3 py-2 text-sm font-semibold transition",
+    "px-3 py-2 text-sm font-medium transition-colors rounded-md",
     isActive
-      ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
-      : "text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:bg-gray-800 hover:text-gray-900 dark:text-gray-50",
+      ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/10"
+      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800/50",
   ].join(" ");
 }
 
@@ -31,69 +31,81 @@ export default function UserLayout({ demoBanner }: { demoBanner?: ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50">
-      <header className="sticky top-0 z-30 border-b border-gray-200 dark:border-gray-800 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link to="/" className="text-xl font-extrabold tracking-tight text-indigo-600 dark:text-indigo-400">
-            Social Geni
-          </Link>
-          <div className="flex items-center gap-2">
-            <span className="hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 dark:text-gray-500 sm:inline-flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50 antialiased selection:bg-indigo-100 selection:text-indigo-900 dark:selection:bg-indigo-900/50 dark:selection:text-indigo-100">
+      <header className="sticky top-0 z-30 border-b border-gray-200/80 dark:border-gray-800/80 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 h-16 sm:px-6">
+          
+          <div className="flex items-center gap-8">
+            <Link to="/" className="flex items-center gap-2 group">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600 text-white shadow-sm shadow-indigo-600/20 group-hover:bg-indigo-700 transition-colors">
+                <span className="material-symbols-outlined text-lg">auto_awesome</span>
+              </div>
+              <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                Social<span className="text-indigo-600 dark:text-indigo-400">Geni</span>
+              </span>
+            </Link>
+
+            <nav className="hidden md:flex items-center gap-1.5" aria-label="Main navigation">
+              <NavLink to="/" end className={({ isActive }) => linkClass(isActive)}>
+                Home
+              </NavLink>
+              <NavLink to="/wizard" className={({ isActive }) => linkClass(isActive)}>
+                Wizard
+              </NavLink>
+              <NavLink to="/generated-kits" className={({ isActive }) => linkClass(isActive)}>
+                Kits
+              </NavLink>
+              <NavLink to="/pricing" className={({ isActive }) => linkClass(isActive)}>
+                Pricing
+              </NavLink>
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="hidden md:inline-flex items-center rounded-full border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-gray-500 dark:text-gray-400">
               Plan: {entitlements?.plan_code ?? "free"}
             </span>
+
+            <div className="h-4 w-px bg-gray-200 dark:bg-gray-800 hidden sm:block mx-1"></div>
+
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="p-2 -mr-1 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              aria-label="Toggle theme"
+              title={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              <span className="material-symbols-outlined text-xl">
+                {themeMode === "dark" ? "light_mode" : "dark_mode"}
+              </span>
+            </button>
+
             {session ? (
               <button
                 type="button"
                 onClick={() => void signOut()}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 py-2 text-xs font-bold text-red-500 transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-indigo-400/40 focus-visible:ring-offset-2"
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-500/10 dark:hover:text-red-400 dark:hover:border-red-500/20 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
               >
-                <span className="material-symbols-outlined text-sm">logout</span>
                 <span className="hidden sm:inline">Logout</span>
               </button>
             ) : (
               <button
                 type="button"
                 onClick={() => void signInWithGoogle()}
-                className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-indigo-400/40 focus-visible:ring-offset-2"
+                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-4 py-1.5 text-sm font-medium text-white shadow-sm shadow-indigo-600/20 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
               >
-                <span className="material-symbols-outlined text-sm">login</span>
                 <span className="hidden sm:inline">Sign in</span>
+                <span className="material-symbols-outlined text-sm sm:hidden">login</span>
               </button>
             )}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 py-2 text-xs font-bold text-gray-900 dark:text-gray-50 transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-indigo-400/40 focus-visible:ring-offset-2"
-              aria-label="Toggle theme"
-              title={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              <span className="material-symbols-outlined text-sm">{themeMode === "dark" ? "light_mode" : "dark_mode"}</span>
-              <span className="hidden sm:inline">{themeMode === "dark" ? "Light" : "Dark"}</span>
-            </button>
-            <nav className="flex items-center gap-1" aria-label="User navigation">
-            <NavLink to="/" end className={({ isActive }) => linkClass(isActive)}>
-              Home
-            </NavLink>
-            <NavLink to="/wizard" className={({ isActive }) => linkClass(isActive)}>
-              Wizard
-            </NavLink>
-            <NavLink to="/generated-kits" className={({ isActive }) => linkClass(isActive)}>
-              Kits
-            </NavLink>
-            <NavLink to="/pricing" className={({ isActive }) => linkClass(isActive)}>
-              Pricing
-            </NavLink>
-            </nav>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl px-2 pb-10 pt-4 sm:px-4 sm:pt-6">
+      <main className="mx-auto w-full max-w-6xl px-4 pb-12 pt-6 sm:pt-8">
         {demoBanner}
         <Outlet />
       </main>
     </div>
   );
 }
-
-
