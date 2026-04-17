@@ -26,6 +26,33 @@ export type GeminiCallResult = {
   usage?: GeminiUsageMetadata;
 };
 
+async function countTokensSafe(
+  settings: GeminiSettings,
+  parts: Array<Record<string, unknown>>
+): Promise<number | undefined> {
+  try {
+    const url =
+      "https://generativelanguage.googleapis.com/v1beta/models/" +
+      encodeURIComponent(settings.model) +
+      ":countTokens";
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "x-goog-api-key": settings.apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts }],
+      }),
+    });
+    if (!response.ok) return undefined;
+    const payload = (await response.json()) as { totalTokens?: number };
+    return typeof payload.totalTokens === "number" ? payload.totalTokens : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function shouldRetryGemini(statusCode: number): boolean {
   return statusCode === 429 || statusCode >= 500;
 }
@@ -156,7 +183,7 @@ export async function callGeminiAPI(
         }
 
         const json = parseJsonFromModelText(modelText);
-        const usage =
+        let usage =
           parsedBody?.usageMetadata &&
           typeof parsedBody.usageMetadata.promptTokenCount === "number" &&
           typeof parsedBody.usageMetadata.candidatesTokenCount === "number" &&
@@ -167,6 +194,18 @@ export async function callGeminiAPI(
                 totalTokenCount: parsedBody.usageMetadata.totalTokenCount,
               }
             : undefined;
+
+        if (!usage) {
+          const promptTokens = await countTokensSafe(settings, parts);
+          const completionTokens = await countTokensSafe(settings, [{ text: modelText }]);
+          if (typeof promptTokens === "number" && typeof completionTokens === "number") {
+            usage = {
+              promptTokenCount: promptTokens,
+              candidatesTokenCount: completionTokens,
+              totalTokenCount: promptTokens + completionTokens,
+            };
+          }
+        }
 
         return { json, usage };
       }
