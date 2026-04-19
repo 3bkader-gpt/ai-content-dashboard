@@ -22,10 +22,18 @@ export function useWizardSubmission(params: {
   const [streamMessage, setStreamMessage] = useState<string>("");
   const [streamProgress, setStreamProgress] = useState(0);
   const [streamSnapshot, setStreamSnapshot] = useState<Record<string, unknown> | null>(null);
+  const [streamSection, setStreamSection] = useState<string>("");
+  const [streamCompletedSections, setStreamCompletedSections] = useState<string[]>([]);
 
   const onValidSubmit = async (form: BriefForm) => {
     setError(null);
     setLoading(true);
+    setStreamStatus("starting");
+    setStreamMessage("");
+    setStreamProgress(0);
+    setStreamSnapshot(null);
+    setStreamSection("");
+    setStreamCompletedSections([]);
     params.emit({
       name: "wizard_generate_clicked",
       wizard_type: params.wizardType,
@@ -45,6 +53,10 @@ export function useWizardSubmission(params: {
         if (evt.type === "partial") {
           setStreamProgress(Math.max(0, Math.min(1, evt.progress)));
           setStreamSnapshot(evt.snapshot);
+          if (evt.section) {
+            setStreamSection(evt.section);
+            setStreamCompletedSections((prev) => (prev.includes(evt.section as string) ? prev : [...prev, evt.section as string]));
+          }
           return;
         }
         if (evt.type === "error") {
@@ -84,5 +96,7 @@ export function useWizardSubmission(params: {
     streamMessage,
     streamProgress,
     streamSnapshot,
+    streamSection,
+    streamCompletedSections,
   };
 }

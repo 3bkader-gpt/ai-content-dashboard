@@ -81,6 +81,24 @@ const WAITING_STAGES = [
   },
 ] as const;
 
+const STREAM_STATUS_STEPS: Array<{ key: string; label: string }> = [
+  { key: "starting", label: "Starting" },
+  { key: "generating", label: "Generating" },
+  { key: "hydrating", label: "Hydrating" },
+  { key: "persisting", label: "Finalizing" },
+];
+
+const STREAM_SECTION_LABELS: Record<string, string> = {
+  narrative_summary: "Narrative summary",
+  diagnosis_plan: "Diagnosis plan",
+  posts: "Posts",
+  image_designs: "Image designs",
+  video_prompts: "Video prompts",
+  marketing_strategy: "Marketing strategy",
+  sales_system: "Sales system",
+  offer_optimization: "Offer optimization",
+};
+
 const STEP_FIELDS: Record<StepId, (keyof BriefForm)[]> = {
   diagnosis: [
     "diagnostic_role",
@@ -400,6 +418,13 @@ export default function WizardCore(props: WizardCoreProps) {
   const loading = submission.loading;
   const err = submission.error;
   const streamProgressPct = Math.round((submission.streamProgress ?? 0) * 100);
+  const activeStreamStepIndex = Math.max(
+    0,
+    STREAM_STATUS_STEPS.findIndex((item) => item.key === submission.streamStatus)
+  );
+  const streamSectionBadges = submission.streamCompletedSections
+    .map((section) => STREAM_SECTION_LABELS[section] ?? section.replace(/_/g, " "))
+    .slice(0, 6);
   const partialSummary = typeof submission.streamSnapshot?.narrative_summary === "string"
     ? submission.streamSnapshot.narrative_summary
     : "";
@@ -1158,6 +1183,46 @@ export default function WizardCore(props: WizardCoreProps) {
               <div className="wizard-indeterminate-track" aria-hidden>
                 <div className="wizard-indeterminate-bar" />
               </div>
+              <div
+                style={{
+                  width: "100%",
+                  maxWidth: "42rem",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  borderRadius: "0.8rem",
+                  padding: "0.65rem 0.75rem",
+                  marginBottom: "0.7rem",
+                  background: "rgba(0,0,0,0.2)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                    gap: "0.35rem",
+                  }}
+                >
+                  {STREAM_STATUS_STEPS.map((step, idx) => {
+                    const isDone = idx <= activeStreamStepIndex;
+                    return (
+                      <div
+                        key={step.key}
+                        style={{
+                          borderRadius: "0.55rem",
+                          padding: "0.35rem 0.45rem",
+                          fontSize: "0.68rem",
+                          fontWeight: 700,
+                          textAlign: "center",
+                          letterSpacing: "0.02em",
+                          opacity: isDone ? 1 : 0.45,
+                          background: isDone ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        {step.label}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
               <p className="wizard-loading-hint" style={{ marginBottom: "0.4rem" }}>
                 {submission.streamStatus === "persisting"
                   ? "Persisting final kit..."
@@ -1174,6 +1239,40 @@ export default function WizardCore(props: WizardCoreProps) {
                 <p className="wizard-loading-hint" style={{ marginBottom: "0.4rem" }}>
                   {submission.streamMessage}
                 </p>
+              ) : null}
+              {submission.streamSection ? (
+                <p className="wizard-loading-hint" style={{ marginBottom: "0.4rem" }}>
+                  Current section:{" "}
+                  <strong>{STREAM_SECTION_LABELS[submission.streamSection] ?? submission.streamSection.replace(/_/g, " ")}</strong>
+                </p>
+              ) : null}
+              {streamSectionBadges.length > 0 ? (
+                <div
+                  style={{
+                    width: "100%",
+                    maxWidth: "42rem",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "0.4rem",
+                    marginBottom: "0.6rem",
+                    justifyContent: "center",
+                  }}
+                >
+                  {streamSectionBadges.map((label) => (
+                    <span
+                      key={label}
+                      style={{
+                        borderRadius: "999px",
+                        border: "1px solid rgba(255,255,255,0.25)",
+                        padding: "0.2rem 0.55rem",
+                        fontSize: "0.68rem",
+                        background: "rgba(255,255,255,0.12)",
+                      }}
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
               ) : null}
               <h3>{WAITING_STAGES[tipIndex]!.title}</h3>
               <p className="wizard-loading-hint">{WAITING_STAGES[tipIndex]!.hint}</p>

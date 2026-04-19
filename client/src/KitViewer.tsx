@@ -1329,8 +1329,37 @@ export default function KitViewer({
         <div className="rounded-xl border border-amber-400/40 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-300/30 dark:bg-amber-500/10 dark:text-amber-100">
           <p className="font-semibold">Some core sections are missing from this kit.</p>
           <p className="mt-1">
-            Missing: {missingCriticalSections.join(", ")}. You can regenerate specific assets from section cards.
+            Missing: {missingCriticalSections.join(", ")}. Use the quick actions below to inspect related sections and regenerate available assets.
           </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {missingCriticalSections.includes("posts") ? (
+              <button
+                type="button"
+                onClick={(e) => openAndScroll("kit-section-posts", e)}
+                className="rounded-full border border-amber-500/35 bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900 transition hover:bg-amber-200 dark:border-amber-200/35 dark:bg-amber-400/10 dark:text-amber-100"
+              >
+                Review posts section
+              </button>
+            ) : null}
+            {missingCriticalSections.includes("image_designs") ? (
+              <button
+                type="button"
+                onClick={(e) => openAndScroll("kit-section-image", e)}
+                className="rounded-full border border-amber-500/35 bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900 transition hover:bg-amber-200 dark:border-amber-200/35 dark:bg-amber-400/10 dark:text-amber-100"
+              >
+                Review image section
+              </button>
+            ) : null}
+            {missingCriticalSections.includes("video_prompts") ? (
+              <button
+                type="button"
+                onClick={(e) => openAndScroll("kit-section-video", e)}
+                className="rounded-full border border-amber-500/35 bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900 transition hover:bg-amber-200 dark:border-amber-200/35 dark:bg-amber-400/10 dark:text-amber-100"
+              >
+                Review video section
+              </button>
+            ) : null}
+          </div>
         </div>
       ) : null}
 
