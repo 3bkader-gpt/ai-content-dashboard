@@ -4,6 +4,14 @@ import { generateKitStream, type KitGenerationStreamEvent } from "../../../api";
 import type { WizardEventPayload, WizardType } from "../../../lib/wizardAnalytics";
 import type { BriefForm } from "../../../types";
 
+const STREAM_STATUS_PROGRESS_FLOOR: Record<string, number> = {
+  starting: 0.08,
+  generating: 0.35,
+  hydrating: 0.72,
+  persisting: 0.9,
+  completed: 1,
+};
+
 export function useWizardSubmission(params: {
   draftKey: string;
   wizardType: WizardType;
@@ -48,10 +56,12 @@ export function useWizardSubmission(params: {
         if (evt.type === "status") {
           setStreamStatus(evt.status);
           if (evt.message) setStreamMessage(evt.message);
+          const floor = STREAM_STATUS_PROGRESS_FLOOR[evt.status] ?? 0;
+          setStreamProgress((prev) => Math.max(prev, floor));
           return;
         }
         if (evt.type === "partial") {
-          setStreamProgress(Math.max(0, Math.min(1, evt.progress)));
+          setStreamProgress((prev) => Math.max(prev, Math.max(0, Math.min(1, evt.progress))));
           setStreamSnapshot(evt.snapshot);
           if (evt.section) {
             setStreamSection(evt.section);
