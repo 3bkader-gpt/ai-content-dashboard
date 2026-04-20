@@ -6,6 +6,7 @@ import { db } from "../db/index.js";
 import { planSubscriptions, users } from "../db/schema.js";
 import { getAuthUser } from "../middleware/userAuth.js";
 import { canApplyAdminRoleChange } from "../services/adminRolePolicy.js";
+import { isAgencyAdminRequest } from "../middleware/agencyAdminAuth.js";
 
 const bodySchema = z.object({
   plan_code: z.enum(["starter", "early_adopter", "admin_unlimited"]),
@@ -35,6 +36,7 @@ function isApiSecretToken(token: string): boolean {
 }
 
 async function requireAdminAccess(c: import("hono").Context): Promise<Response | null> {
+  if (await isAgencyAdminRequest(c)) return null;
   const token = parseBearerToken(c);
   if (isApiSecretToken(token)) return null;
 

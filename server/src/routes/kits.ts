@@ -15,6 +15,7 @@ import { ensureUserFromSupabase } from "../services/subscriptionService.js";
 import { db } from "../db/index.js";
 import { users } from "../db/schema.js";
 import { eq } from "drizzle-orm";
+import { isAgencyAdminRequest } from "../middleware/agencyAdminAuth.js";
 
 const deviceIdSchema = z.string().uuid();
 const REASONING_TRACE_MAX_LINES = 24;
@@ -192,6 +193,7 @@ async function resolveOwner(c: import("hono").Context) {
 }
 
 async function requireAdminAccess(c: import("hono").Context): Promise<Response | null> {
+  if (await isAgencyAdminRequest(c)) return null;
   const authUser = getAuthUser(c);
   if (!authUser) return c.json({ error: "Unauthorized" }, 401);
   const current = (

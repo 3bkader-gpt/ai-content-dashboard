@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { NavLink, Link, Outlet } from "react-router-dom";
+import { NavLink, Link, Outlet, useNavigate } from "react-router-dom";
 import { getHealth } from "../api/misc";
+import { logoutAgencyAdmin } from "../api";
+import { isAgencyEdition } from "../lib/appEdition";
 
 function navClass(isActive: boolean) {
   return [
@@ -12,10 +14,12 @@ function navClass(isActive: boolean) {
 }
 
 export default function AdminLayout() {
+  const navigate = useNavigate();
   const [themeMode, setThemeMode] = useState<"light" | "dark">(() =>
     document.documentElement.classList.contains("dark") ? "dark" : "light"
   );
   const [apiStatus, setApiStatus] = useState<"checking" | "active" | "offline">("checking");
+  const agencyEdition = isAgencyEdition();
 
   useEffect(() => {
     let cancelled = false;
@@ -47,6 +51,15 @@ export default function AdminLayout() {
     } catch {
       // ignore
     }
+  };
+
+  const handleExitAdmin = () => {
+    if (agencyEdition) {
+      logoutAgencyAdmin();
+      navigate("/admin/login", { replace: true });
+      return;
+    }
+    navigate("/wizard");
   };
 
   return (
@@ -103,13 +116,14 @@ export default function AdminLayout() {
               <NavLink to="/admin/generated-kits" className={({ isActive }) => navClass(isActive)}>Kits</NavLink>
             </nav>
             
-            <Link
-              to="/wizard"
+            <button
+              type="button"
+              onClick={handleExitAdmin}
               className="ml-2 hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-1.5 text-xs font-semibold text-gray-900 dark:text-white transition-all hover:bg-gray-50 dark:hover:bg-white/10 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-white/20"
             >
-              Exit Admin
+              {agencyEdition ? "Sign Out" : "Exit Admin"}
               <span className="material-symbols-outlined text-[14px]">logout</span>
-            </Link>
+            </button>
           </div>
         </div>
       </header>

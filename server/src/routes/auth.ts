@@ -13,6 +13,10 @@ import {
   linkDeviceToUserAndClaimKits,
   resolveAccessContext,
 } from "../services/subscriptionService.js";
+import {
+  issueAgencyAdminSessionToken,
+  isAgencyAdminRequest,
+} from "../middleware/agencyAdminAuth.js";
 
 const deviceSchema = z.string().uuid();
 
@@ -31,6 +35,15 @@ function requireDeviceId(c: import("hono").Context): { ok: true; deviceId: strin
 const syncBodySchema = z.object({
   device_id: z.string().uuid(),
 });
+
+const agencyAdminLoginSchema = z.object({
+  username: z.string().trim().min(1),
+  password: z.string().min(1),
+});
+
+function isAgencyEdition() {
+  return String(process.env.APP_EDITION ?? "").trim().toLowerCase() === "agency";
+}
 
 export function createAuthRouter(mw: (c: import("hono").Context, next: Next) => Promise<void | Response>) {
   const app = new Hono();
@@ -109,6 +122,42 @@ export function createAuthRouter(mw: (c: import("hono").Context, next: Next) => 
         regenerate_used: access.usage.regenerateUsed,
       },
     });
+  });
+
+  app.post("/api/auth/agency-admin/login", async (c) => {
+    if (!isAgencyEdition()) return c.json({ error: "Not available in this edition." }, 404);
+    let body: z.infer<typeof agencyAdminLoginSchema>;
+    try {
+      body = agencyAdminLoginSchema.parse(await c.req.json());
+    } catch {
+      return c.json({ error: "Invalid body." }, 400);
+    }
+
+    const expectedUsername = String(process.env.ADMIN_USERNAME ?? "admin").trim() || "admin";
+    const expectedPassword = String(process.env.ADMIN_PASSWORD ?? "").trim();
+    if (!expectedPassword) {
+      return c.json({ error: "Server misconfiguration: ADMIN_PASSWORD is missing." }, 503);
+    }
+    if (body.username !== expectedUsername || body.password !== expectedPassword) {
+      return c.json({ error: "Invalid username or password." }, 401);
+    }
+
+    const token = await issueAgencyAdminSessionToken(body.username);
+    if (!token) {
+      return c.json({ error: "Server misconfiguration: ADMIN_AUTH_SECRET is missing." }, 503);
+    }
+    return c.json({
+      ok: true,
+      username: body.username,
+      token,
+    });
+  });
+
+  app.get("/api/auth/agency-admin/session", async (c) => {
+    if (!isAgencyEdition()) return c.json({ error: "Not available in this edition." }, 404);
+    const ok = await isAgencyAdminRequest(c);
+    if (!ok) return c.json({ valid: false }, 401);
+    return c.json({ valid: true });
   });
 
   return app;

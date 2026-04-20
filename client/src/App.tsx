@@ -1,4 +1,6 @@
-import { Routes, Route, Navigate, Link } from "react-router-dom";
+import type { ReactElement } from "react";
+import { Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import KitDetail from "./KitDetail";
 import Dashboard from "./Dashboard";
 import GeneratedKitsPage from "./GeneratedKitsPage";
@@ -17,8 +19,39 @@ import IntegrationsPage from "./pages/IntegrationsPage";
 import OrderReceivedPage from "./pages/OrderReceivedPage";
 import { useAuth } from "./auth/AuthContext";
 import { isAgencyEdition } from "./lib/appEdition";
+import AdminLoginPage from "./pages/AdminLoginPage";
+import { validateAgencyAdminSession } from "./api";
 
 const demoMode = import.meta.env.VITE_DEMO_MODE === "true";
+
+function RequireAgencyAdmin({ children }: { children: ReactElement }) {
+  const location = useLocation();
+  const [status, setStatus] = useState<"checking" | "ok" | "blocked">("checking");
+
+  useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      const valid = await validateAgencyAdminSession();
+      if (!cancelled) setStatus(valid ? "ok" : "blocked");
+    }
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [location.pathname]);
+
+  if (status === "checking") {
+    return (
+      <div className="min-h-[40vh] flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+        Checking admin session...
+      </div>
+    );
+  }
+  if (status === "blocked") {
+    return <Navigate to="/admin/login" state={{ from: location }} replace />;
+  }
+  return children;
+}
 
 export default function App() {
   const { entitlements } = useAuth();
@@ -85,7 +118,8 @@ export default function App() {
         <Route path="/profile" element={<ProfilePage />} />
       </Route>
 
-      <Route path="/admin" element={<AdminLayout />}>
+      <Route path="/admin/login" element={agencyEdition ? <AdminLoginPage /> : <Navigate to="/" replace />} />
+      <Route path="/admin" element={agencyEdition ? <RequireAgencyAdmin><AdminLayout /></RequireAgencyAdmin> : <AdminLayout />}>
         <Route index element={<Navigate to="/admin/analytics" replace />} />
         <Route path="analytics" element={<WizardAnalyticsPage />} />
         <Route path="plans" element={<AdminPlansPage />} />

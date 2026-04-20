@@ -81,6 +81,7 @@ cp .env.example client/.env.local
 
 # edition switches
 # - server/.env: APP_EDITION=self_serve|agency
+# - server/.env (agency admin auth): ADMIN_USERNAME=admin, ADMIN_PASSWORD, ADMIN_AUTH_SECRET
 # - client/.env.local: VITE_APP_EDITION=self_serve|agency
 # - optional team routing: TELEGRAM_WEBHOOK_URL, ADMIN_BASE_URL
 
@@ -254,6 +255,7 @@ When `APP_EDITION=agency`:
 
 - Public/non-admin access to `/api/kits` and `/api/kits/:id` is blocked.
 - Admin access via `scope=all` remains available for internal operations.
+- Admin authentication can run without Supabase by using `POST /api/auth/agency-admin/login` (`ADMIN_USERNAME` + `ADMIN_PASSWORD`) and passing `X-Agency-Admin-Session` on admin requests.
 
 ### Phase 3 continuity behavior
 
