@@ -9,6 +9,7 @@ import {
   type AdminUserItem,
 } from "../api";
 import { useAuth } from "../auth/AuthContext";
+import { isAgencyEdition } from "../lib/appEdition";
 
 const planOptions = [
   { value: "starter", label: "Starter" },
@@ -50,6 +51,7 @@ function useDebouncedValue<T>(value: T, delayMs = 400) {
 
 export default function AdminPlansPage() {
   const { ready, session } = useAuth();
+  const agencyEdition = isAgencyEdition();
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [usersQuery, setUsersQuery] = useState("");
   const debouncedQuery = useDebouncedValue(usersQuery.trim(), 400);
@@ -106,7 +108,7 @@ export default function AdminPlansPage() {
 
   useEffect(() => {
     if (!ready) return;
-    if (!session) {
+    if (!session && !agencyEdition) {
       setUsers([]);
       setSnapshot(null);
       setMessage({
@@ -119,7 +121,7 @@ export default function AdminPlansPage() {
     void loadUsers(usersPage, debouncedQuery, controller.signal);
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, session, debouncedQuery, usersPage, refreshKey]);
+  }, [ready, session, agencyEdition, debouncedQuery, usersPage, refreshKey]);
 
   const loadPlans = async (targetUserId: string) => {
     if (!targetUserId.trim()) return;
@@ -174,10 +176,11 @@ export default function AdminPlansPage() {
   };
 
   useEffect(() => {
-    if (!ready || !session) return;
+    if (!ready) return;
+    if (!session && !agencyEdition) return;
     if (!selectedUserId) return;
     void loadPlans(selectedUserId);
-  }, [ready, session, selectedUserId]);
+  }, [ready, session, agencyEdition, selectedUserId]);
 
   const applyRoleByEmail = async (isAdmin: boolean) => {
     if (!roleEmail.trim()) {
