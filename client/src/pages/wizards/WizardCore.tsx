@@ -1155,13 +1155,6 @@ export default function WizardCore(props: WizardCoreProps) {
                     </p>
                   </div>
                 )}
-                {showField("volume", "email") && (
-                  <div>
-                    <label htmlFor="email" className={labelCls}>Email for kit delivery (optional)</label>
-                    <div className={fieldShell}><input id="email" type="email" className={inputCls} {...register("email")} /></div>
-                    {errors.email && <p className={errCls}>{errors.email.message}</p>}
-                  </div>
-                )}
                 {showField("volume", "include_content_package") && (
                   <div className="flex gap-3 rounded-xl border border-outline/20 bg-surface-container-low/60 p-4 dark:border-outline/25 dark:bg-earth-darkCard/40">
                     <input

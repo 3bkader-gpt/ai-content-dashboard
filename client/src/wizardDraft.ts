@@ -4,7 +4,6 @@ import { normalizeCampaignMode } from "./types";
 export const WIZARD_DRAFT_KEY = "ai-content-dashboard:wizard-draft:v1";
 
 const BRIEF_KEYS: (keyof BriefForm)[] = [
-  "email",
   "client_name",
   "client_phone",
   "client_email",
@@ -53,7 +52,6 @@ export function isWizardDirty(form: BriefForm, step: number, limits: WizardLimit
     form.client_email.trim() ||
     form.industry.trim() ||
     form.business_links.trim() ||
-    form.email.trim() ||
     form.target_audience.length > 0 ||
     form.diagnostic_role.trim() ||
     form.diagnostic_account_stage.trim() ||
@@ -123,7 +121,6 @@ export function parseWizardDraft(raw: string, limits: WizardLimits, maxStep: num
       return [];
     };
     const form: BriefForm = {
-      email: str(f.email),
       client_name: str(f.client_name),
       client_phone: str(f.client_phone),
       client_email: str(f.client_email),

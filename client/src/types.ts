@@ -35,7 +35,6 @@ export function normalizeCampaignMode(v: unknown): CampaignMode {
 }
 
 export type BriefForm = {
-  email: string;
   client_name: string;
   client_phone: string;
   client_email: string;

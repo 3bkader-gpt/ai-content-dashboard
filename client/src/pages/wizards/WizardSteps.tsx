@@ -519,7 +519,7 @@ export function CreativeStep({ form, showField }: StepProps) {
 
 // --- Volume Step ---
 export function VolumeStep({ form, showField }: StepProps) {
-  const { register, control, formState: { errors } } = form;
+  const { control, formState: { errors } } = form;
 
   return (
     <div className="space-y-6">
@@ -570,13 +570,6 @@ export function VolumeStep({ form, showField }: StepProps) {
             />
           </div>
           {errors.num_video_prompts && <p className={errCls}>{errors.num_video_prompts.message}</p>}
-        </div>
-      )}
-      {showField("volume", "email") && (
-        <div>
-          <label htmlFor="email" className={labelCls}>Email for kit delivery (optional)</label>
-          <div className={fieldShell}><input id="email" type="email" className={inputCls} {...register("email")} /></div>
-          {errors.email && <p className={errCls}>{errors.email.message}</p>}
         </div>
       )}
     </div>

@@ -83,7 +83,7 @@ cp .env.example client/.env.local
 # - server/.env: APP_EDITION=self_serve|agency
 # - server/.env (agency admin auth): ADMIN_USERNAME=admin, ADMIN_PASSWORD, ADMIN_AUTH_SECRET
 # - client/.env.local: VITE_APP_EDITION=self_serve|agency
-# - optional team routing: TELEGRAM_WEBHOOK_URL, ADMIN_BASE_URL
+# - optional team routing: TELEGRAM_WEBHOOK_URL or (TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID [+ TELEGRAM_THREAD_ID]), ADMIN_BASE_URL
 
 npm install
 npm run dev

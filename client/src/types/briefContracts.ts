@@ -6,7 +6,6 @@ import type { CampaignMode } from "../types";
  * scoped contracts in UI/business logic to reduce over-coupling.
  */
 export type BaseBrief = {
-  email: string;
   brand_name: string;
   industry: string;
   target_audience: string[];

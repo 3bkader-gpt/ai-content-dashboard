@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { Next } from "hono";
 import {
+  enqueueAgencyKitGenerationService,
   generateKitService,
   getKitByIdService,
   listKitsService,
@@ -227,6 +228,22 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
     }
 
     const streamMode = c.req.query("stream") === "1";
+    const asyncMode = c.req.query("async") === "1";
+    const agencyRequest = body.source_mode === "agency";
+
+    if (asyncMode && agencyRequest) {
+      try {
+        const result = await enqueueAgencyKitGenerationService({
+          body: body as Record<string, unknown>,
+          deviceId: ownerRes.owner.deviceId,
+          userId: ownerRes.owner.userId,
+        });
+        return c.json(result.body, result.status);
+      } catch (err) {
+        return respondHttpError(c, err, "Unexpected error while queueing kit generation.");
+      }
+    }
+
     if (!streamMode) {
       try {
         const result = await generateKitService({

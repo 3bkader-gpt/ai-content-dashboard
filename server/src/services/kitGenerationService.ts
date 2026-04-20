@@ -389,6 +389,160 @@ export async function generateKitService(input: {
   }
 }
 
+export async function enqueueAgencyKitGenerationService(input: {
+  body: Record<string, unknown>;
+  deviceId: string;
+  userId?: string | null;
+}, deps?: KitGenerationDependencies) {
+  const d = withDeps(deps);
+  const snapshot = buildSubmissionSnapshot(input.body);
+  const owner = { deviceId: input.deviceId, userId: input.userId ?? null };
+  const access = await resolveAccessContext(d.db, owner);
+  enforceGenerateEntitlements(access, {
+    campaignMode: snapshot.campaign_mode,
+    hasReferenceImage: Boolean(parseReferenceImageFromDataUrl(snapshot.reference_image)),
+    requestedVideoPrompts: snapshot.num_video_prompts,
+    requestedImagePrompts: snapshot.num_image_designs,
+  });
+
+  const settings = loadGeminiSettingsFromEnv();
+  const correlationId = nanoid();
+  const bv = await fetchBrandVoiceContext(d.db, input.userId);
+  const latestSuccessfulKit = await getLatestSuccessfulKitForOwner(d.db, owner);
+  const historicalContext = buildHistoricalContextFromResultJson(latestSuccessfulKit?.resultJson ?? null);
+  const resolved = await resolvePrompt(snapshot.industry, snapshot, bv, {
+    historicalContext,
+  });
+  const referenceImage = parseReferenceImageFromDataUrl(snapshot.reference_image);
+
+  const pending = await persistKit(d.db, snapshot, null, owner, {
+    deliveryStatus: "retry_in_progress",
+    modelUsed: settings.model,
+    lastError: "",
+    correlationId,
+    promptVersionId: resolved.promptVersionId,
+    isFallback: resolved.isFallback,
+    rowVersion: 0,
+    tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+  });
+
+  await d.notifyTelegram({ snapshot, kitId: pending.id, correlationId });
+  await d.notify(pending);
+
+  void (async () => {
+    try {
+      const demoMode = String(process.env.DEMO_MODE ?? "").toLowerCase() === "true";
+      if (demoMode) {
+        const aiContent = buildDemoKitContent(snapshot) as Record<string, unknown>;
+        if (shouldRunContentPackageChain(snapshot)) {
+          aiContent[CONTENT_IDEAS_PACKAGE_KEY] = buildDemoContentIdeasPackage(snapshot.content_package_idea_count);
+        }
+        const emailResult = await d.sendKit(snapshot, aiContent);
+        const done = await updateKit(d.db, pending.id, snapshot, aiContent, {
+          deliveryStatus: resolveDeliveryStatus(emailResult),
+          modelUsed: "demo-mode",
+          lastError: emailResult.error || "",
+          correlationId,
+          promptVersionId: resolved.promptVersionId,
+          isFallback: resolved.isFallback,
+          rowVersion: 1,
+        });
+        if (done) {
+          await d.notify(done);
+          await consumeGeneratedAssets(d.db, owner, {
+            videoPromptsUsed: Array.isArray((aiContent as Record<string, unknown>).video_prompts)
+              ? ((aiContent as Record<string, unknown>).video_prompts as unknown[]).length
+              : 0,
+            imagePromptsUsed: Array.isArray((aiContent as Record<string, unknown>).image_designs)
+              ? ((aiContent as Record<string, unknown>).image_designs as unknown[]).length
+              : 0,
+          });
+        }
+        return;
+      }
+
+      if (!settings.apiKey) {
+        const failed = await updateKit(d.db, pending.id, snapshot, null, {
+          deliveryStatus: "failed_generation",
+          modelUsed: settings.model,
+          lastError: "Missing GEMINI_API_KEY.",
+          correlationId,
+          promptVersionId: resolved.promptVersionId,
+          isFallback: resolved.isFallback,
+          rowVersion: 1,
+        });
+        if (failed) await d.notify(failed);
+        return;
+      }
+
+      const { aiContent, usage: primaryUsage } = await generateWithGuardrails(
+        resolved.renderedPrompt,
+        snapshot,
+        settings,
+        referenceImage,
+        { callAPI: d.callGemini }
+      );
+      let usage = primaryUsage;
+      if (shouldRunContentPackageChain(snapshot)) {
+        const pkgResult = await runContentPackageChain(snapshot, settings, referenceImage, { callAPI: d.callGemini });
+        (aiContent as Record<string, unknown>)[CONTENT_IDEAS_PACKAGE_KEY] =
+          pkgResult.data as unknown as Record<string, unknown>;
+        usage = addUsageTotals(usage, pkgResult.usage);
+      }
+
+      const emailResult = await d.sendKit(snapshot, aiContent);
+      const done = await updateKit(d.db, pending.id, snapshot, aiContent, {
+        deliveryStatus: resolveDeliveryStatus(emailResult),
+        modelUsed: settings.model,
+        lastError: emailResult.error || "",
+        correlationId,
+        promptVersionId: resolved.promptVersionId,
+        isFallback: resolved.isFallback,
+        rowVersion: 1,
+        tokenUsage: usage,
+      });
+      if (done) {
+        await d.notify(done);
+        await consumeGeneratedAssets(d.db, owner, {
+          videoPromptsUsed: Array.isArray((aiContent as Record<string, unknown>).video_prompts)
+            ? ((aiContent as Record<string, unknown>).video_prompts as unknown[]).length
+            : 0,
+          imagePromptsUsed: Array.isArray((aiContent as Record<string, unknown>).image_designs)
+            ? ((aiContent as Record<string, unknown>).image_designs as unknown[]).length
+            : 0,
+        });
+      }
+    } catch (error) {
+      const reason = safeClientError(error);
+      const failed = await updateKit(d.db, pending.id, snapshot, null, {
+        deliveryStatus: "failed_generation",
+        modelUsed: settings.model,
+        lastError: reason,
+        correlationId,
+        promptVersionId: resolved.promptVersionId,
+        isFallback: resolved.isFallback,
+        rowVersion: 1,
+      });
+      if (failed) await d.notify(failed);
+      await logKitFailure(d.db, {
+        kitId: pending.id,
+        phase: "generate",
+        errorCode: "GENERATION_FAILED",
+        errorMessage: reason,
+        correlationId,
+        modelUsed: settings.model,
+      });
+    }
+  })().catch((error) => {
+    console.warn("[agency_background_generation_unhandled]", String(error));
+  });
+
+  return {
+    status: 202 as const,
+    body: serializeKit(pending),
+  };
+}
+
 export async function retryKitService(input: {
   id: string;
   brief_json: string;

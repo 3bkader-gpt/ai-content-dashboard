@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ApiError } from "../../../api";
-import { generateKitStream, type KitGenerationStreamEvent } from "../../../api";
+import { generateKitAsync, generateKitStream, type KitGenerationStreamEvent } from "../../../api";
 import type { WizardEventPayload, WizardType } from "../../../lib/wizardAnalytics";
 import { isAgencyEdition } from "../../../lib/appEdition";
 import type { BriefForm } from "../../../types";
@@ -59,7 +59,10 @@ export function useWizardSubmission(params: {
         ...params.clampCounts(form),
         source_mode: isAgencyEdition() ? "agency" : "self_serve",
       } satisfies BriefForm;
-      const kit = await generateKitStream(payload, params.createIdempotencyKey(), (evt: KitGenerationStreamEvent) => {
+      const submitAsAgency = isAgencyEdition();
+      const kit = submitAsAgency
+        ? await generateKitAsync(payload, params.createIdempotencyKey())
+        : await generateKitStream(payload, params.createIdempotencyKey(), (evt: KitGenerationStreamEvent) => {
         if (evt.type === "status") {
           setStreamStatus(evt.status);
           if (evt.message) setStreamMessage(evt.message);

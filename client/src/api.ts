@@ -1,6 +1,7 @@
 export { ApiError } from "./api/httpClient";
 export {
   generateKit,
+  generateKitAsync,
   generateKitStream,
   listKits,
   getKit,

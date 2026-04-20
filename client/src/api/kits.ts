@@ -38,6 +38,16 @@ export async function generateKit(brief: BriefForm, idempotencyKey: string): Pro
   return res.json() as Promise<KitSummary>;
 }
 
+export async function generateKitAsync(brief: BriefForm, idempotencyKey: string): Promise<KitSummary> {
+  const res = await fetch(apiUrl("/api/kits/generate?async=1"), {
+    method: "POST",
+    headers: buildHeaders({ "Idempotency-Key": idempotencyKey }),
+    body: JSON.stringify({ ...brief, submitted_at: new Date().toISOString() }),
+  });
+  if (!res.ok) throw new ApiError(await parseErrorMessage(res, res.statusText), res.status);
+  return res.json() as Promise<KitSummary>;
+}
+
 function parseSseFrames(buffer: string): { frames: string[]; rest: string } {
   const frames: string[] = [];
   let start = 0;

@@ -16,12 +16,6 @@ export const BRIEF_LIMITS = {
 const L = BRIEF_LIMITS;
 
 export const briefSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .refine((v) => v === "" || /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(v), {
-      message: "Invalid email format",
-    }),
   client_name: z.string().trim().default(""),
   client_phone: z.string().trim().default(""),
   client_email: z
@@ -168,12 +162,11 @@ export const STEP_FIELD_KEYS: readonly (readonly (keyof BriefForm)[])[] = [
   ["platforms", "brand_tone", "brand_colors"],
   ["offer", "competitors"],
   ["visual_notes", "reference_image", "campaign_duration", "budget_level", "best_content_types"],
-  ["include_content_package", "content_package_idea_count", "num_posts", "num_image_designs", "num_video_prompts", "email"],
+  ["include_content_package", "content_package_idea_count", "num_posts", "num_image_designs", "num_video_prompts"],
 ] as const;
 
 export function initialBriefForm(): BriefForm {
   return {
-    email: "",
     client_name: "",
     client_phone: "",
     client_email: "",

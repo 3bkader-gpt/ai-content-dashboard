@@ -6,7 +6,9 @@ export async function notifyTelegramNewLead(input: {
   correlationId: string;
 }) {
   const webhookUrl = String(process.env.TELEGRAM_WEBHOOK_URL ?? "").trim();
-  if (!webhookUrl) return;
+  const botToken = String(process.env.TELEGRAM_BOT_TOKEN ?? "").trim();
+  const chatId = String(process.env.TELEGRAM_CHAT_ID ?? "").trim();
+  const threadId = String(process.env.TELEGRAM_THREAD_ID ?? "").trim();
 
   const adminBaseUrl = String(process.env.ADMIN_BASE_URL ?? "").trim();
   const adminLink = adminBaseUrl ? `${adminBaseUrl.replace(/\/$/, "")}/admin/kits/${input.kitId}` : "";
@@ -25,17 +27,44 @@ export async function notifyTelegramNewLead(input: {
     adminLink ? `Admin: ${adminLink}` : "",
   ].filter(Boolean);
 
-  const payload = { text: lines.join("\n") };
+  const text = lines.join("\n");
 
   try {
-    const response = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!response.ok) {
-      const body = await response.text();
-      console.warn("[telegram_notify_failed]", JSON.stringify({ status: response.status, body }));
+    if (webhookUrl) {
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!response.ok) {
+        const body = await response.text();
+        console.warn("[telegram_notify_failed]", JSON.stringify({ status: response.status, body }));
+      }
+      return;
+    }
+
+    if (botToken && chatId) {
+      const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+      const payload: Record<string, unknown> = {
+        chat_id: chatId,
+        text,
+        disable_web_page_preview: true,
+      };
+      if (threadId) {
+        const parsedThread = Number(threadId);
+        if (Number.isFinite(parsedThread) && parsedThread > 0) {
+          payload.message_thread_id = parsedThread;
+        }
+      }
+      const response = await fetch(sendMessageUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const body = await response.text();
+        console.warn("[telegram_bot_notify_failed]", JSON.stringify({ status: response.status, body }));
+      }
     }
   } catch (error) {
     console.warn("[telegram_notify_error]", String(error));
