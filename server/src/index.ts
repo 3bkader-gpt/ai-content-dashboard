@@ -9,6 +9,7 @@ import { createFeaturesRouter } from "./routes/features.js";
 import { createAnalyticsRouter } from "./routes/analytics.js";
 import { createAuthRouter } from "./routes/auth.js";
 import { createAdminPlansRouter } from "./routes/adminPlans.js";
+import { createTelemetryRouter } from "./routes/telemetry.js";
 import { bearerAuth } from "./middleware/auth.js";
 import { optionalSupabaseUser } from "./middleware/userAuth.js";
 import { rateLimit } from "./middleware/rateLimit.js";
@@ -70,12 +71,14 @@ async function main() {
   const analyticsApp = createAnalyticsRouter();
   const authApp = createAuthRouter(kitsGuard);
   const adminPlansApp = createAdminPlansRouter(adminGuard);
+  const telemetryApp = createTelemetryRouter(kitsGuard);
 
   app.route("/", kitsApp);
   app.route("/api", featuresApp);
   app.route("/api", analyticsApp);
   app.route("/", authApp);
   app.route("/", adminPlansApp);
+  app.route("/", telemetryApp);
 
   const port = parseInt(process.env.PORT ?? "8787", 10);
   const server = serve({ fetch: app.fetch, port }, () => {

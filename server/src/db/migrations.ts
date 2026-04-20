@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS social_geni.kits (
   target_audience_v2 JSONB NOT NULL DEFAULT '[]'::jsonb,
   platforms_v2 JSONB NOT NULL DEFAULT '[]'::jsonb,
   best_content_types_v2 JSONB NOT NULL DEFAULT '[]'::jsonb,
+  ui_preferences JSONB NOT NULL DEFAULT '{}'::jsonb,
   result_json TEXT,
   delivery_status TEXT NOT NULL,
   model_used TEXT NOT NULL,
@@ -42,6 +43,9 @@ ALTER TABLE social_geni.kits
 ADD COLUMN IF NOT EXISTS best_content_types_v2 JSONB NOT NULL DEFAULT '[]'::jsonb;
 
 ALTER TABLE social_geni.kits
+ADD COLUMN IF NOT EXISTS ui_preferences JSONB NOT NULL DEFAULT '{}'::jsonb;
+
+ALTER TABLE social_geni.kits
 ADD COLUMN IF NOT EXISTS prompt_tokens INTEGER NOT NULL DEFAULT 0;
 
 ALTER TABLE social_geni.kits
@@ -54,10 +58,28 @@ UPDATE social_geni.kits
 SET
   target_audience_v2 = COALESCE(target_audience_v2, '[]'::jsonb),
   platforms_v2 = COALESCE(platforms_v2, '[]'::jsonb),
-  best_content_types_v2 = COALESCE(best_content_types_v2, '[]'::jsonb)
+  best_content_types_v2 = COALESCE(best_content_types_v2, '[]'::jsonb),
+  ui_preferences = COALESCE(ui_preferences, '{}'::jsonb)
 WHERE target_audience_v2 IS NULL
    OR platforms_v2 IS NULL
-   OR best_content_types_v2 IS NULL;
+   OR best_content_types_v2 IS NULL
+   OR ui_preferences IS NULL;
+
+CREATE TABLE IF NOT EXISTS social_geni.kit_interactions (
+  id TEXT PRIMARY KEY NOT NULL,
+  kit_id TEXT NOT NULL,
+  user_id TEXT,
+  device_id TEXT NOT NULL DEFAULT '',
+  interaction_type TEXT NOT NULL,
+  meta_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_kit_interactions_kit_created
+  ON social_geni.kit_interactions (kit_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_kit_interactions_type_created
+  ON social_geni.kit_interactions (interaction_type, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS social_geni.idempotency_keys (
   key_hash TEXT PRIMARY KEY NOT NULL,

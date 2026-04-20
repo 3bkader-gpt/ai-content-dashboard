@@ -93,3 +93,9 @@ Implemented after Phase 2 to stabilize generation UX and quota semantics:
 - Kit viewer posts are grouped by `platform -> day` and CTA renders without hardcoded `CTA:` prefix.
 - Generate flow consumes quota usage only after successful LLM + persistence + idempotency finalization success path.
 
+## 8) Continuation to Phase 3
+
+Phase 3 implementation details are documented in:
+
+- [`docs/PHASE3_EXECUTION.md`](./PHASE3_EXECUTION.md)
+

@@ -5,6 +5,7 @@ const listKitsService = vi.fn();
 const getKitByIdService = vi.fn();
 const regenerateKitItemService = vi.fn();
 const retryKitService = vi.fn();
+const patchKitUiPreferencesService = vi.fn();
 
 vi.mock("../services/kitGenerationService.js", () => ({
   generateKitService,
@@ -12,6 +13,7 @@ vi.mock("../services/kitGenerationService.js", () => ({
   getKitByIdService,
   regenerateKitItemService,
   retryKitService,
+  patchKitUiPreferencesService,
 }));
 
 async function appRequest(path: string, init?: RequestInit) {
@@ -166,6 +168,32 @@ describe("kits routes device header enforcement", () => {
 
     expect(res.status).toBe(200);
     expect(getKitByIdService).toHaveBeenCalledWith("k1", { deviceId, userId: null }, { includeUsage: false });
+  });
+
+  it("patches ui preferences with ownership context", async () => {
+    const deviceId = "43cef6f6-6085-4f41-b244-5b1a91c3b4af";
+    patchKitUiPreferencesService.mockResolvedValueOnce({
+      status: 200,
+      body: { id: "k-pref", ui_preferences: { lang: "en" } },
+    });
+
+    const res = await appRequest("/api/kits/k-pref/ui-preferences", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Device-ID": deviceId,
+      },
+      body: JSON.stringify({
+        ui_preferences: { lang: "en", open_map: { "kit-section-posts": true } },
+      }),
+    });
+
+    expect(res.status).toBe(200);
+    expect(patchKitUiPreferencesService).toHaveBeenCalledWith({
+      id: "k-pref",
+      owner: { deviceId, userId: null },
+      uiPreferences: { lang: "en", open_map: { "kit-section-posts": true } },
+    });
   });
 });
 

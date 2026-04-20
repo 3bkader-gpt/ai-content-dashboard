@@ -15,6 +15,19 @@ export type KitGenerationStreamEvent =
   | { type: "complete"; kit: KitSummary }
   | { type: "error"; message: string };
 
+export type KitInteractionPayload = {
+  kit_id: string;
+  interaction_type: string;
+  meta?: Record<string, unknown>;
+};
+
+export type KitUiPreferencesPayload = {
+  lang?: "ar" | "en";
+  open_map?: Record<string, boolean>;
+  open_platforms?: Record<string, boolean>;
+  open_days?: Record<string, boolean>;
+};
+
 export async function generateKit(brief: BriefForm, idempotencyKey: string): Promise<KitSummary> {
   const res = await fetch(apiUrl("/api/kits/generate"), {
     method: "POST",
@@ -159,6 +172,25 @@ export async function regenerateKitItem(
     method: "POST",
     headers: buildHeaders(),
     body: JSON.stringify({ item_type, index, row_version, feedback }),
+  });
+  if (!res.ok) throw new ApiError(await parseErrorMessage(res, res.statusText), res.status);
+  return res.json() as Promise<KitSummary>;
+}
+
+export async function submitKitInteractionTelemetry(payload: KitInteractionPayload): Promise<void> {
+  const res = await fetch(apiUrl("/api/telemetry/interaction"), {
+    method: "POST",
+    headers: buildHeaders(),
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new ApiError(await parseErrorMessage(res, res.statusText), res.status);
+}
+
+export async function updateKitUiPreferences(id: string, uiPreferences: KitUiPreferencesPayload): Promise<KitSummary> {
+  const res = await fetch(apiUrl(`/api/kits/${id}/ui-preferences`), {
+    method: "PATCH",
+    headers: buildHeaders(),
+    body: JSON.stringify({ ui_preferences: uiPreferences }),
   });
   if (!res.ok) throw new ApiError(await parseErrorMessage(res, res.statusText), res.status);
   return res.json() as Promise<KitSummary>;

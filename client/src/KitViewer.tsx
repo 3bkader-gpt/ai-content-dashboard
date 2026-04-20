@@ -3,6 +3,7 @@ import {
   useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
   type MouseEvent,
   type ReactNode,
@@ -17,6 +18,7 @@ import {
 } from "./features/kits/kitViewModel";
 import { useKitRegenerate } from "./features/kits/useKitRegenerate";
 import RegenerateFeedbackDialog from "./features/kits/RegenerateFeedbackDialog";
+import { submitKitInteractionTelemetry, updateKitUiPreferences } from "./api";
 
 const TOC_ID = "kit-plan-toc";
 const SCROLL_MARGIN = "6rem";
@@ -32,6 +34,11 @@ function CopyFieldButton({ text, label }: { text: string; label: string }) {
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
+      window.dispatchEvent(
+        new CustomEvent("kit-copy-action", {
+          detail: { label },
+        })
+      );
       setDone(true);
       window.setTimeout(() => setDone(false), 2000);
     } catch {
@@ -156,6 +163,38 @@ const IMAGE_DESIGN_FIELD_DEFS: { key: string; label: string }[] = [
 ];
 
 type ViewerLang = "ar" | "en";
+
+export type ViewerUiPreferences = {
+  lang: ViewerLang;
+  open_map: Record<string, boolean>;
+  open_platforms: Record<string, boolean>;
+  open_days: Record<string, boolean>;
+};
+
+export function normalizeViewerUiPreferences(raw: unknown): ViewerUiPreferences {
+  const prefs =
+    raw && typeof raw === "object" && !Array.isArray(raw)
+      ? (raw as {
+          lang?: unknown;
+          open_map?: unknown;
+          open_platforms?: unknown;
+          open_days?: unknown;
+        })
+      : {};
+  const toMap = (value: unknown): Record<string, boolean> => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+    return Object.entries(value as Record<string, unknown>).reduce<Record<string, boolean>>((acc, [k, v]) => {
+      acc[String(k)] = Boolean(v);
+      return acc;
+    }, {});
+  };
+  return {
+    lang: prefs.lang === "en" ? "en" : "ar",
+    open_map: toMap(prefs.open_map),
+    open_platforms: toMap(prefs.open_platforms),
+    open_days: toMap(prefs.open_days),
+  };
+}
 
 function pickByLang(
   item: Record<string, unknown> | KitPostItem,
@@ -964,15 +1003,20 @@ function GroupedPostsPanel({
   lang,
   regeneratingKey,
   openRegenerateDialog,
+  openPlatforms,
+  openDays,
+  onPlatformToggle,
+  onDayToggle,
 }: {
   groups: GroupedPostsByPlatform[];
   lang: ViewerLang;
   regeneratingKey: string | null;
   openRegenerateDialog: (itemType: "post" | "image" | "video", index: number) => void;
+  openPlatforms: Record<string, boolean>;
+  openDays: Record<string, boolean>;
+  onPlatformToggle?: (platform: string, open: boolean) => void;
+  onDayToggle?: (platform: string, day: string, open: boolean) => void;
 }) {
-  const [openPlatforms, setOpenPlatforms] = useState<Record<string, boolean>>({});
-  const [openDays, setOpenDays] = useState<Record<string, boolean>>({});
-
   return (
     <div className="space-y-3">
       {groups.map((group) => {
@@ -986,7 +1030,7 @@ function GroupedPostsPanel({
             <button
               type="button"
               className="flex w-full items-center justify-between gap-2 text-start"
-              onClick={() => setOpenPlatforms((prev) => ({ ...prev, [platformKey]: !platformOpen }))}
+              onClick={() => onPlatformToggle?.(group.platformLabel, !platformOpen)}
               aria-expanded={platformOpen}
             >
               <span className="text-sm font-bold text-on-surface">{group.platformLabel}</span>
@@ -1008,7 +1052,7 @@ function GroupedPostsPanel({
                       <button
                         type="button"
                         className="flex w-full items-center justify-between gap-2 text-start"
-                        onClick={() => setOpenDays((prev) => ({ ...prev, [dayKey]: !dayOpen }))}
+                        onClick={() => onDayToggle?.(group.platformLabel, day.dayLabel, !dayOpen)}
                         aria-expanded={dayOpen}
                       >
                         <span className="text-xs font-semibold uppercase tracking-wide text-on-surface-variant">{day.dayLabel}</span>
@@ -1289,8 +1333,39 @@ export default function KitViewer({
   onKitUpdate?: (next: KitSummary) => void;
   showTechnical?: boolean;
 }) {
+  const telemetryDebounceRef = useRef<Record<string, number>>({});
+  const preferencesDebounceRef = useRef<number | null>(null);
+  const hydratedPrefsRef = useRef(false);
+  const lastSavedPrefsRef = useRef("");
+  const sendInteractionTelemetry = useCallback(
+    (interactionType: string, meta?: Record<string, unknown>, debounceKey?: string) => {
+      const submit = () => {
+        void submitKitInteractionTelemetry({
+          kit_id: kit.id,
+          interaction_type: interactionType,
+          meta,
+        }).catch(() => undefined);
+      };
+
+      if (!debounceKey) {
+        submit();
+        return;
+      }
+
+      const existing = telemetryDebounceRef.current[debounceKey];
+      if (existing) window.clearTimeout(existing);
+      telemetryDebounceRef.current[debounceKey] = window.setTimeout(() => {
+        submit();
+        delete telemetryDebounceRef.current[debounceKey];
+      }, 220);
+    },
+    [kit.id]
+  );
+
   const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
   const [lang, setLang] = useState<ViewerLang>("ar");
+  const [openPlatforms, setOpenPlatforms] = useState<Record<string, boolean>>({});
+  const [openDays, setOpenDays] = useState<Record<string, boolean>>({});
   const {
     data,
     posts,
@@ -1364,17 +1439,64 @@ export default function KitViewer({
   }, [posts, postStrategy]);
 
   const toggle = useCallback((id: string) => {
-    setOpenMap((m) => ({ ...m, [id]: !m[id] }));
-  }, []);
+    setOpenMap((m) => {
+      const nextOpen = !m[id];
+      sendInteractionTelemetry("section_toggle", { section: id, open: nextOpen }, `section:${id}`);
+      return { ...m, [id]: nextOpen };
+    });
+  }, [sendInteractionTelemetry]);
+
+  useEffect(() => {
+    const normalized = normalizeViewerUiPreferences(kit.ui_preferences);
+    setLang(normalized.lang);
+    setOpenMap(normalized.open_map);
+    setOpenPlatforms(normalized.open_platforms);
+    setOpenDays(normalized.open_days);
+    const serialized = JSON.stringify({
+      lang: normalized.lang,
+      open_map: normalized.open_map,
+      open_platforms: normalized.open_platforms,
+      open_days: normalized.open_days,
+    });
+    lastSavedPrefsRef.current = serialized;
+    hydratedPrefsRef.current = true;
+  }, [kit.id, kit.ui_preferences]);
+
+  useEffect(() => {
+    if (!hydratedPrefsRef.current) return;
+    const payload = {
+      lang,
+      open_map: openMap,
+      open_platforms: openPlatforms,
+      open_days: openDays,
+    } as const;
+    const serialized = JSON.stringify(payload);
+    if (serialized === lastSavedPrefsRef.current) return;
+
+    if (preferencesDebounceRef.current) window.clearTimeout(preferencesDebounceRef.current);
+    preferencesDebounceRef.current = window.setTimeout(() => {
+      void updateKitUiPreferences(kit.id, payload)
+        .then(() => {
+          lastSavedPrefsRef.current = serialized;
+        })
+        .catch(() => undefined);
+      preferencesDebounceRef.current = null;
+    }, 500);
+
+    return () => {
+      if (preferencesDebounceRef.current) window.clearTimeout(preferencesDebounceRef.current);
+    };
+  }, [kit.id, lang, openMap, openPlatforms, openDays]);
 
   const openAndScroll = useCallback((id: string, e?: MouseEvent<HTMLButtonElement>) => {
     e?.preventDefault();
     e?.stopPropagation();
     setOpenMap((m) => ({ ...m, [id]: true }));
+    sendInteractionTelemetry("section_jump_open", { section: id, open: true }, `jump:${id}`);
     window.requestAnimationFrame(() => {
       document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
-  }, []);
+  }, [sendInteractionTelemetry]);
 
   const scrollToToc = useCallback(() => {
     document.getElementById(TOC_ID)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1415,6 +1537,19 @@ export default function KitViewer({
     return () => window.clearTimeout(timer);
   }, [feedbackOpen]);
 
+  useEffect(() => {
+    const onCopy = (evt: Event) => {
+      const custom = evt as CustomEvent<{ label?: string }>;
+      sendInteractionTelemetry(
+        "copy_action",
+        { label: custom.detail?.label ?? "copy" },
+        `copy:${custom.detail?.label ?? "copy"}`
+      );
+    };
+    window.addEventListener("kit-copy-action", onCopy as EventListener);
+    return () => window.removeEventListener("kit-copy-action", onCopy as EventListener);
+  }, [sendInteractionTelemetry]);
+
   if (!data) return null;
 
   return (
@@ -1434,7 +1569,10 @@ export default function KitViewer({
             <div className="inline-flex items-center gap-1 rounded-full border border-brand-sand/30 bg-earth-alt p-1 dark:border-outline/30 dark:bg-surface-container-high">
             <button
               type="button"
-              onClick={() => setLang("ar")}
+              onClick={() => {
+                setLang("ar");
+                sendInteractionTelemetry("language_toggle", { lang: "ar" }, "lang");
+              }}
               className={
                 "rounded-full px-2.5 py-1 text-[11px] font-semibold transition " +
                 (lang === "ar" ? "bg-primary text-on-primary" : "text-on-surface-variant")
@@ -1444,7 +1582,10 @@ export default function KitViewer({
             </button>
             <button
               type="button"
-              onClick={() => setLang("en")}
+              onClick={() => {
+                setLang("en");
+                sendInteractionTelemetry("language_toggle", { lang: "en" }, "lang");
+              }}
               className={
                 "rounded-full px-2.5 py-1 text-[11px] font-semibold transition " +
                 (lang === "en" ? "bg-primary text-on-primary" : "text-on-surface-variant")
@@ -1529,6 +1670,22 @@ export default function KitViewer({
             lang={lang}
             regeneratingKey={regeneratingKey}
             openRegenerateDialog={openRegenerateDialog}
+            onPlatformToggle={(platform, open) =>
+              setOpenPlatforms((prev) => {
+                const platformKey = platform.toLowerCase();
+                sendInteractionTelemetry("posts_platform_toggle", { platform, open }, `pf:${platform}`);
+                return { ...prev, [platformKey]: open };
+              })
+            }
+            onDayToggle={(platform, day, open) =>
+              setOpenDays((prev) => {
+                const dayKey = `${platform.toLowerCase()}-${day}`;
+                sendInteractionTelemetry("posts_day_toggle", { platform, day, open }, `day:${platform}:${day}`);
+                return { ...prev, [dayKey]: open };
+              })
+            }
+            openPlatforms={openPlatforms}
+            openDays={openDays}
           />
         </CollapsibleSection>
       )}

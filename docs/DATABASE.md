@@ -14,6 +14,7 @@
 | Table | Primary key | Purpose |
 |-------|-------------|---------|
 | `kits` | `id` (text) | Core artifact: brief, result JSON, delivery status, tokens, row version |
+| `kit_interactions` | `id` (text) | Viewer interaction telemetry linked to kits |
 | `idempotency_keys` | `key_hash` | Idempotent generate mapping |
 | `users` | `id` | App user linked to Supabase |
 | `user_devices` | `id` | Device ↔ user linkage; `device_id` unique |
@@ -43,6 +44,7 @@
 | `target_audience_v2` | jsonb | `string[]` |
 | `platforms_v2` | jsonb | `string[]` |
 | `best_content_types_v2` | jsonb | `string[]` |
+| `ui_preferences` | jsonb | Viewer UI state (`lang`, open section maps) |
 | `result_json` | text | Nullable; stringified kit JSON |
 | `delivery_status` | text | |
 | `model_used` | text | |
@@ -67,6 +69,20 @@
 | `brief_hash` | text |
 | `kit_id` | text |
 | `expires_at` | bigint |
+
+---
+
+## `kit_interactions`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | text PK | |
+| `kit_id` | text | Owning kit ID |
+| `user_id` | text nullable | Owner user when authenticated |
+| `device_id` | text | Owner device |
+| `interaction_type` | text | Action type (`copy_action`, toggles, etc.) |
+| `meta_json` | jsonb | Optional metadata payload |
+| `created_at`, `updated_at` | timestamptz | |
 
 ---
 

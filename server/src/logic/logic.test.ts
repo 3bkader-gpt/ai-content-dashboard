@@ -202,6 +202,23 @@ describe("promptComposer", () => {
     expect(block).toContain("Deduce psychological triggers");
     expect(block).toContain("Client industry: SaaS");
   });
+
+  it("injects optional historical context block when provided", () => {
+    const snapshot = buildSubmissionSnapshot({
+      industry: "SaaS",
+      target_audience: ["Founders"],
+      main_goal: "Book demos",
+    });
+    const composed = composePrompt({
+      campaignPrefix: campaignModeInstructionBlock("social"),
+      creativeDirection: "Focus on high-intent founder pain points.",
+      snapshot,
+      mode: "social",
+      historicalContext: "- Previous positioning: Clear ROI in 30 days",
+    });
+    expect(composed).toContain("## Historical Context");
+    expect(composed).toContain("Previous positioning");
+  });
 });
 
 describe("responseSchema", () => {

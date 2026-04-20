@@ -14,6 +14,11 @@ function normalizeArray(value: unknown): string[] {
   );
 }
 
+function normalizeUiPreferences(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return value as Record<string, unknown>;
+}
+
 export function serializeKit(row: KitRow, opts?: { includeUsage?: boolean }) {
   const status = row.deliveryStatus;
   const palette = getStatusBadgePalette(status);
@@ -49,6 +54,7 @@ export function serializeKit(row: KitRow, opts?: { includeUsage?: boolean }) {
     correlation_id: row.correlationId,
     prompt_version_id: row.promptVersionId ?? null,
     is_fallback: Boolean(row.isFallback),
+    ui_preferences: normalizeUiPreferences(row.uiPreferences),
     row_version: row.rowVersion,
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString(),
@@ -196,4 +202,39 @@ export async function getKitByIdAny(db: any, id: string) {
     .limit(1))[0];
   if (!row) return null;
   return row;
+}
+
+export async function getLatestSuccessfulKitForOwner(
+  db: any,
+  owner: { deviceId: string; userId?: string | null }
+) {
+  const rows = await db
+    .select()
+    .from(kits)
+    .where(owner.userId ? eq(kits.userId, owner.userId) : eq(kits.deviceId, owner.deviceId))
+    .orderBy(desc(kits.createdAt))
+    .limit(30);
+  return (
+    rows.find((row: KitRow) => {
+      const status = String(row.deliveryStatus ?? "").trim().toLowerCase();
+      return Boolean(status) && status !== "failed_generation" && status !== "retry_in_progress";
+    }) ?? null
+  );
+}
+
+export async function patchKitUiPreferences(
+  db: any,
+  id: string,
+  owner: { deviceId: string; userId?: string | null },
+  uiPreferences: Record<string, unknown>
+) {
+  const updated = await db
+    .update(kits)
+    .set({
+      uiPreferences: normalizeUiPreferences(uiPreferences),
+      updatedAt: new Date(),
+    })
+    .where(and(eq(kits.id, id), owner.userId ? eq(kits.userId, owner.userId) : eq(kits.deviceId, owner.deviceId)))
+    .returning();
+  return updated[0] ?? null;
 }

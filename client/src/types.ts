@@ -10,6 +10,12 @@ export type KitSummary = {
   correlation_id: string;
   prompt_version_id?: string | null;
   is_fallback?: boolean;
+  ui_preferences?: {
+    lang?: "ar" | "en";
+    open_map?: Record<string, boolean>;
+    open_platforms?: Record<string, boolean>;
+    open_days?: Record<string, boolean>;
+  } | null;
   prompt_tokens?: number;
   completion_tokens?: number;
   total_tokens?: number;

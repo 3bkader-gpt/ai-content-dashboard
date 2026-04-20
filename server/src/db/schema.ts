@@ -19,6 +19,7 @@ export const kits = socialGeni.table("kits", {
   targetAudienceV2: jsonb("target_audience_v2").$type<string[]>().notNull().default([]),
   platformsV2: jsonb("platforms_v2").$type<string[]>().notNull().default([]),
   bestContentTypesV2: jsonb("best_content_types_v2").$type<string[]>().notNull().default([]),
+  uiPreferences: jsonb("ui_preferences").$type<Record<string, unknown>>().notNull().default({}),
   resultJson: text("result_json"),
   deliveryStatus: text("delivery_status").notNull(),
   modelUsed: text("model_used").notNull(),
@@ -30,6 +31,17 @@ export const kits = socialGeni.table("kits", {
   completionTokens: integer("completion_tokens").notNull().default(0),
   totalTokens: integer("total_tokens").notNull().default(0),
   rowVersion: integer("row_version").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull(),
+});
+
+export const kitInteractions = socialGeni.table("kit_interactions", {
+  id: text("id").primaryKey(),
+  kitId: text("kit_id").notNull(),
+  userId: text("user_id"),
+  deviceId: text("device_id").notNull().default(""),
+  interactionType: text("interaction_type").notNull(),
+  metaJson: jsonb("meta_json").$type<Record<string, unknown>>().notNull().default({}),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull(),
 });

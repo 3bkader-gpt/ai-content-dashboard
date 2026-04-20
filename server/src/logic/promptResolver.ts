@@ -72,7 +72,8 @@ export function renderPromptTemplate(template: string, snapshot: SubmissionSnaps
 export async function resolvePrompt(
   industryInput: string,
   snapshot: SubmissionSnapshot,
-  brandVoice?: BrandVoiceContext
+  brandVoice?: BrandVoiceContext,
+  options?: { historicalContext?: string }
 ): Promise<ResolvedPrompt> {
   const targetSlug = normalizeIndustrySlug(industryInput);
   const useMetaPrompt = isUseMetaPrompt();
@@ -91,6 +92,7 @@ export async function resolvePrompt(
       mode: snapshot.campaign_mode,
       useMetaPrompt: true,
       brandVoice,
+      historicalContext: options?.historicalContext,
     });
     return {
       industrySlugUsed: targetSlug,
@@ -139,6 +141,7 @@ export async function resolvePrompt(
       mode: snapshot.campaign_mode,
       useMetaPrompt: true,
       brandVoice,
+      historicalContext: options?.historicalContext,
     });
     return {
       industrySlugUsed: targetSlug,
@@ -171,6 +174,7 @@ export async function resolvePrompt(
     mode: snapshot.campaign_mode,
     useMetaPrompt: false,
     brandVoice,
+    historicalContext: options?.historicalContext,
   });
 
   return {

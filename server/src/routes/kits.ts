@@ -5,6 +5,7 @@ import {
   generateKitService,
   getKitByIdService,
   listKitsService,
+  patchKitUiPreferencesService,
   regenerateKitItemService,
   retryKitService,
 } from "../services/kitGenerationService.js";
@@ -61,6 +62,20 @@ const regenerateItemBodySchema = z.object({
   index: z.number().int().nonnegative(),
   row_version: z.number().int().nonnegative(),
   feedback: z.string().trim().max(1200).optional(),
+});
+
+const viewerLangSchema = z.enum(["ar", "en"]);
+const uiPreferencesSchema = z
+  .object({
+    lang: viewerLangSchema.optional(),
+    open_map: z.record(z.string(), z.boolean()).optional(),
+    open_platforms: z.record(z.string(), z.boolean()).optional(),
+    open_days: z.record(z.string(), z.boolean()).optional(),
+  })
+  .strict();
+
+const patchUiPreferencesBodySchema = z.object({
+  ui_preferences: uiPreferencesSchema,
 });
 
 type RegenerateItemType = z.infer<typeof regenerateItemBodySchema>["item_type"];
@@ -371,6 +386,28 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
       return c.json(result.body, result.status as 200);
     } catch (err) {
       return respondHttpError(c, err, "Unexpected error while regenerating item.");
+    }
+  });
+
+  app.patch("/api/kits/:id/ui-preferences", async (c) => {
+    const ownerRes = await resolveOwner(c);
+    if (!ownerRes.ok) return ownerRes.response;
+    let body: z.infer<typeof patchUiPreferencesBodySchema>;
+    try {
+      body = patchUiPreferencesBodySchema.parse(await c.req.json());
+    } catch {
+      return c.json({ error: "Invalid body: ui_preferences payload is malformed." }, 400);
+    }
+
+    try {
+      const result = await patchKitUiPreferencesService({
+        id: c.req.param("id"),
+        owner: ownerRes.owner,
+        uiPreferences: body.ui_preferences,
+      });
+      return c.json(result.body, result.status);
+    } catch (err) {
+      return respondHttpError(c, err, "Unexpected error while updating UI preferences.");
     }
   });
 

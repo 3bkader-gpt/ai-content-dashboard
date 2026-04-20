@@ -236,8 +236,19 @@ Authorization: Bearer <API_SECRET>
 | `GET` | `/api/kits/:id` | Kit detail |
 | `POST` | `/api/kits/:id/retry` | Retry only `failed_generation` with `{ brief_json, row_version }` |
 | `POST` | `/api/kits/:id/regenerate-item` | Regenerate one item only with `{ item_type, index, row_version, feedback? }` |
+| `PATCH` | `/api/kits/:id/ui-preferences` | Persist viewer UI state with `{ ui_preferences }` (`lang`, section/panel maps) |
+| `POST` | `/api/telemetry/interaction` | Fire-and-forget interaction telemetry with `{ kit_id, interaction_type, meta? }` |
 
 Generation quota usage (image/video prompt counters) is consumed only after a successful LLM response and successful kit persistence path.
+
+### Phase 3 continuity behavior
+
+- Viewer UI state is persisted per kit in `kits.ui_preferences` and restored on reload:
+  - `lang`
+  - top-level section expansion map
+  - grouped posts platform/day expansion maps
+- Generation prompt can include an optional **Historical Context** block derived from the latest successful kit for the same owner (bounded/truncated to protect token budget).
+- Interaction telemetry is stored first-party in `social_geni.kit_interactions` and is non-blocking (telemetry failures never block core UI actions).
 
 ### Retry semantics
 

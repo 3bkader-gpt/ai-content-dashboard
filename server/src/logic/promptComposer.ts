@@ -278,6 +278,16 @@ export function buildBrandVoiceBlock(voice?: BrandVoiceContext): string {
   return lines.join("\n");
 }
 
+export function buildHistoricalContextBlock(historicalContext?: string): string {
+  const normalized = cleanText(historicalContext);
+  if (!normalized) return "";
+  return [
+    "Use this previous successful context only as guidance for continuity. Do not copy text verbatim.",
+    "Prefer preserving strategic consistency while still generating fresh executional angles.",
+    normalized,
+  ].join("\n");
+}
+
 export function composePrompt(input: {
   campaignPrefix: string;
   creativeDirection: string;
@@ -285,6 +295,7 @@ export function composePrompt(input: {
   mode: CampaignMode;
   useMetaPrompt?: boolean;
   brandVoice?: BrandVoiceContext;
+  historicalContext?: string;
 }): string {
   const parts = [
     cleanText(input.campaignPrefix),
@@ -292,6 +303,7 @@ export function composePrompt(input: {
     section("Brand Voice & Tone", buildBrandVoiceBlock(input.brandVoice)),
     section("Creative Direction", input.creativeDirection),
     section("Client Context (auto-injected)", buildClientContextBlock(input.snapshot)),
+    section("Historical Context", buildHistoricalContextBlock(input.historicalContext)),
     section("Conditional Diagnostic Rules", buildDiagnosticRulesBlock(input.snapshot)),
     section("Few-shot Guidance", buildFewShotGuidanceBlock()),
     section("Diversity Rules", buildDiversityPolicyBlock(input.snapshot)),

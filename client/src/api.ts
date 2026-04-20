@@ -1,6 +1,20 @@
 export { ApiError } from "./api/httpClient";
-export { generateKit, generateKitStream, listKits, getKit, retryKit, regenerateKitItem } from "./api/kits";
-export type { KitGenerationStreamEvent, KitGenerationStreamStatus } from "./api/kits";
+export {
+  generateKit,
+  generateKitStream,
+  listKits,
+  getKit,
+  retryKit,
+  regenerateKitItem,
+  submitKitInteractionTelemetry,
+  updateKitUiPreferences,
+} from "./api/kits";
+export type {
+  KitGenerationStreamEvent,
+  KitGenerationStreamStatus,
+  KitInteractionPayload,
+  KitUiPreferencesPayload,
+} from "./api/kits";
 export { listNotifications, markAllNotificationsRead } from "./api/notifications";
 export type { NotificationItem } from "./api/notifications";
 export {

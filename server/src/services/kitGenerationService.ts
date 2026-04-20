@@ -30,7 +30,17 @@ import {
   pruneExpiredIdempotency,
   reserveIdempotencyKey,
 } from "./idempotencyService.js";
-import { getKitById, getKitByIdAny, listAllKits, listKits, persistKit, serializeKit, updateKit } from "./kitRepository.js";
+import {
+  getKitById,
+  getKitByIdAny,
+  getLatestSuccessfulKitForOwner,
+  listAllKits,
+  listKits,
+  patchKitUiPreferences,
+  persistKit,
+  serializeKit,
+  updateKit,
+} from "./kitRepository.js";
 import {
   getRegenerateItemSchema,
   getSectionArray,
@@ -94,6 +104,79 @@ function logGenerationTelemetry(meta: {
   kitId?: string;
 }) {
   console.info("[prompt_telemetry]", JSON.stringify(meta));
+}
+
+const HISTORY_MAX_LINE_LEN = 220;
+const HISTORY_MAX_LINES = 10;
+const HISTORY_MAX_TOTAL = 1600;
+
+function pickStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => String(item ?? "").trim())
+    .filter(Boolean)
+    .slice(0, 5);
+}
+
+function truncateLine(value: string): string {
+  const compact = value.replace(/\s+/g, " ").trim();
+  if (!compact) return "";
+  if (compact.length <= HISTORY_MAX_LINE_LEN) return compact;
+  return compact.slice(0, HISTORY_MAX_LINE_LEN - 1).trimEnd() + "…";
+}
+
+function buildHistoricalContextFromResultJson(resultJsonRaw: string | null): string {
+  if (!resultJsonRaw) return "";
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(resultJsonRaw);
+  } catch {
+    return "";
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return "";
+  const result = parsed as Record<string, unknown>;
+
+  const lines: string[] = [];
+  const push = (label: string, value: unknown) => {
+    const text = truncateLine(String(value ?? ""));
+    if (text) lines.push(`- ${label}: ${text}`);
+  };
+
+  const marketingStrategy =
+    result.marketing_strategy && typeof result.marketing_strategy === "object" && !Array.isArray(result.marketing_strategy)
+      ? (result.marketing_strategy as Record<string, unknown>)
+      : null;
+  const salesSystem =
+    result.sales_system && typeof result.sales_system === "object" && !Array.isArray(result.sales_system)
+      ? (result.sales_system as Record<string, unknown>)
+      : null;
+  const offerOptimization =
+    result.offer_optimization && typeof result.offer_optimization === "object" && !Array.isArray(result.offer_optimization)
+      ? (result.offer_optimization as Record<string, unknown>)
+      : null;
+
+  push("Previous narrative summary", result.narrative_summary);
+  push("Previous positioning", marketingStrategy?.brand_positioning_statement);
+  push("Previous content mix", marketingStrategy?.content_mix_plan);
+  push("Previous funnel plan", salesSystem?.funnel_plan);
+  push("Previous offer direction", offerOptimization?.rewritten_offer);
+
+  const painPoints = pickStringArray(salesSystem?.pain_points);
+  if (painPoints.length) {
+    lines.push(`- Previous key pain points: ${truncateLine(painPoints.join(" | "))}`);
+  }
+  const keyAngles = pickStringArray(marketingStrategy?.key_messaging_angles);
+  if (keyAngles.length) {
+    lines.push(`- Previous key messaging angles: ${truncateLine(keyAngles.join(" | "))}`);
+  }
+
+  if (!lines.length) return "";
+  const capped = lines.slice(0, HISTORY_MAX_LINES);
+  let block = capped.join("\n");
+  if (block.length > HISTORY_MAX_TOTAL) {
+    block = block.slice(0, HISTORY_MAX_TOTAL - 1).trimEnd() + "…";
+  }
+  return block;
 }
 
 export function startIdempotencyCleanupJob(intervalMs = 10 * 60 * 1000, deps?: KitGenerationDependencies): NodeJS.Timeout {
@@ -166,7 +249,11 @@ export async function generateKitService(input: {
   const settings = loadGeminiSettingsFromEnv();
   const correlationId = nanoid();
   const bv = await fetchBrandVoiceContext(d.db, input.userId);
-  const resolved = await resolvePrompt(snapshot.industry, snapshot, bv);
+  const latestSuccessfulKit = await getLatestSuccessfulKitForOwner(d.db, owner);
+  const historicalContext = buildHistoricalContextFromResultJson(latestSuccessfulKit?.resultJson ?? null);
+  const resolved = await resolvePrompt(snapshot.industry, snapshot, bv, {
+    historicalContext,
+  });
 
   if (demoMode) {
     const aiContent = buildDemoKitContent(snapshot) as Record<string, unknown>;
@@ -327,7 +414,11 @@ export async function retryKitService(input: {
   const correlationId = nanoid();
   const nextVersion = row.rowVersion + 1;
   const bv = await fetchBrandVoiceContext(d.db, row.userId);
-  const resolved = await resolvePrompt(snapshot.industry, snapshot, bv);
+  const latestSuccessfulKit = await getLatestSuccessfulKitForOwner(d.db, owner);
+  const historicalContext = buildHistoricalContextFromResultJson(latestSuccessfulKit?.resultJson ?? null);
+  const resolved = await resolvePrompt(snapshot.industry, snapshot, bv, {
+    historicalContext,
+  });
   const referenceImage = parseReferenceImageFromDataUrl(snapshot.reference_image);
   const demoMode = String(process.env.DEMO_MODE ?? "").toLowerCase() === "true";
 
@@ -596,4 +687,14 @@ export async function getKitByIdService(
   const row = owner ? await getKitById(withDeps().db, id, owner) : await getKitByIdAny(withDeps().db, id);
   if (!row) throw new HttpError(404, "Not found");
   return serializeKit(row, opts);
+}
+
+export async function patchKitUiPreferencesService(input: {
+  id: string;
+  owner: { deviceId: string; userId?: string | null };
+  uiPreferences: Record<string, unknown>;
+}) {
+  const updated = await patchKitUiPreferences(withDeps().db, input.id, input.owner, input.uiPreferences);
+  if (!updated) throw new HttpError(404, "Not found");
+  return { status: 200 as const, body: serializeKit(updated) };
 }
