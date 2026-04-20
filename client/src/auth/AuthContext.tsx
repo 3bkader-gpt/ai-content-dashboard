@@ -3,6 +3,7 @@ import type { Session } from "@supabase/supabase-js";
 import { getEntitlements, syncAuthDevice, type EntitlementsResponse } from "../api";
 import { setAccessToken } from "../lib/authToken";
 import { getDeviceId } from "../lib/deviceId";
+import { isAgencyEdition } from "../lib/appEdition";
 import { hasSupabaseAuth, supabase } from "./supabaseClient";
 
 type AuthState = {
@@ -15,6 +16,13 @@ type AuthState = {
 };
 
 const AuthCtx = createContext<AuthState | null>(null);
+
+function resolveAuthRedirectUrl(): string {
+  const configured = String(import.meta.env.VITE_AUTH_REDIRECT_URL ?? "").trim();
+  if (configured) return configured;
+  if (isAgencyEdition()) return `${window.location.origin}/wizard/social`;
+  return window.location.href;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -81,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await supabase.auth.signInWithOAuth({
           provider: "google",
           options: {
-            redirectTo: window.location.href,
+            redirectTo: resolveAuthRedirectUrl(),
           },
         });
       },

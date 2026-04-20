@@ -107,7 +107,7 @@ export default function App() {
           />
         }
       >
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={agencyEdition ? <Navigate to="/wizard/social" replace /> : <Dashboard />} />
         <Route path="/generated-kits" element={agencyEdition ? <Navigate to="/" replace /> : <GeneratedKitsPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/wizard" element={<Navigate to="/wizard/social" replace />} />
