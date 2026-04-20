@@ -11,15 +11,37 @@ export type AuthUserClaims = {
   displayName: string;
 };
 
-const jwksCache = new Map<string, ReturnType<typeof createRemoteJWKSet>>();
+type CachedJwks = {
+  resolver: ReturnType<typeof createRemoteJWKSet>;
+  cachedAtMs: number;
+};
+
+const jwksCache = new Map<string, CachedJwks>();
+
+function resolveJwksCacheTtlMs(): number {
+  const raw = parseInt(process.env.SUPABASE_JWKS_CACHE_TTL_MS ?? String(60 * 60 * 1000), 10);
+  if (!Number.isFinite(raw) || raw <= 0) return 60 * 60 * 1000;
+  return Math.min(Math.max(raw, 60_000), 24 * 60 * 60 * 1000);
+}
+
+const JWKS_CACHE_TTL_MS = resolveJwksCacheTtlMs();
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of jwksCache.entries()) {
+    if (now - entry.cachedAtMs > JWKS_CACHE_TTL_MS) {
+      jwksCache.delete(key);
+    }
+  }
+}, Math.min(Math.max(Math.floor(JWKS_CACHE_TTL_MS / 2), 60_000), 10 * 60_000)).unref();
 
 function getSupabaseJwks(url: string) {
   const normalized = url.trim().replace(/\/+$/, "");
   const key = `${normalized}/auth/v1/.well-known/jwks.json`;
   const cached = jwksCache.get(key);
-  if (cached) return cached;
+  if (cached && Date.now() - cached.cachedAtMs <= JWKS_CACHE_TTL_MS) return cached.resolver;
   const jwks = createRemoteJWKSet(new URL(key));
-  jwksCache.set(key, jwks);
+  jwksCache.set(key, { resolver: jwks, cachedAtMs: Date.now() });
   return jwks;
 }
 
