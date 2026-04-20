@@ -308,16 +308,30 @@ CREATE INDEX IF NOT EXISTS idx_industry_prompts_status ON social_geni.industry_p
 -- NOTE:
 -- - Policies are primarily effective for JWT-scoped PostgREST paths.
 -- - Service-role / bypass-RLS connections can still access all rows.
+-- - In plain Postgres environments (without Supabase auth schema),
+--   this block is skipped to avoid startup failures.
 -- -------------------------------------------------------------------
 
-ALTER TABLE social_geni.kits ENABLE ROW LEVEL SECURITY;
-ALTER TABLE social_geni.kit_interactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE social_geni.notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE social_geni.monthly_usage_counters ENABLE ROW LEVEL SECURITY;
-ALTER TABLE social_geni.kit_delete_audit ENABLE ROW LEVEL SECURITY;
-
 DO $$
+DECLARE
+  has_auth_schema BOOLEAN;
 BEGIN
+  SELECT EXISTS (
+    SELECT 1
+    FROM pg_namespace
+    WHERE nspname = 'auth'
+  ) INTO has_auth_schema;
+
+  IF NOT has_auth_schema THEN
+    RETURN;
+  END IF;
+
+  EXECUTE 'ALTER TABLE social_geni.kits ENABLE ROW LEVEL SECURITY';
+  EXECUTE 'ALTER TABLE social_geni.kit_interactions ENABLE ROW LEVEL SECURITY';
+  EXECUTE 'ALTER TABLE social_geni.notifications ENABLE ROW LEVEL SECURITY';
+  EXECUTE 'ALTER TABLE social_geni.monthly_usage_counters ENABLE ROW LEVEL SECURITY';
+  EXECUTE 'ALTER TABLE social_geni.kit_delete_audit ENABLE ROW LEVEL SECURITY';
+
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
     WHERE schemaname = 'social_geni'
