@@ -183,13 +183,6 @@ export default function UserLayout({ demoBanner }: { demoBanner?: ReactNode }) {
                   </div>
                 )}
               </div>
-            ) : agencyEdition ? (
-              <Link
-                to="/admin/login"
-                className="inline-flex items-center px-4 py-1.5 rounded-md bg-gray-900 hover:bg-gray-800 text-sm font-medium text-white shadow-sm dark:bg-white dark:text-black dark:hover:bg-gray-100 transition-all focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:ring-offset-2 dark:focus:ring-offset-black"
-              >
-                Admin Login
-              </Link>
             ) : (
               <button
                 type="button"
