@@ -156,8 +156,13 @@ export async function optionalSupabaseUser(c: Context, next: Next) {
         ` | detail="${detail}"`,
     );
 
-    const status = reason === "jwks_fetch_error" ? 503 : 401;
-    return c.json({ error: CLIENT_REASON[reason] }, status);
+    // IMPORTANT:
+    // This middleware is intentionally "optional". If a browser sends a stale/invalid JWT,
+    // we degrade to anonymous instead of hard-failing the whole request pipeline.
+    // Protected routes still enforce auth by checking getAuthUser(c) downstream.
+    c.set("authUser", null);
+    c.header("x-auth-warning", CLIENT_REASON[reason]);
+    return await next();
   }
 }
 
