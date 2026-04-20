@@ -79,6 +79,14 @@ Acceptance checks:
 - **Analytics ingestion continuity:** `POST /api/analytics/wizard-events` remains writable for client telemetry ingestion.
 - **Agency admin login throttling:** repeated calls to `POST /api/auth/agency-admin/login` from same source eventually return `429` with `Retry-After`.
 
+## Audit Phase 4 focused checks
+
+- **RLS enabled:** confirm `relrowsecurity = true` for `social_geni.kits`, `kit_interactions`, `notifications`, `monthly_usage_counters`, `kit_delete_audit`.
+- **Owner isolation:** with non-admin JWT, attempts to read rows owned by other `user_id` must return empty/denied.
+- **Owner write guard:** insert/update on owner-scoped tables must fail when `user_id` does not match `auth.uid()`.
+- **Admin audit visibility:** `kit_delete_audit` readable only for JWTs carrying admin claim (`is_admin=true`).
+- **Service role caveat:** verify service-role pathways still function and document that they bypass RLS by design.
+
 ## Agency pivot focused checks
 
 - **Edition routing:** with `VITE_APP_EDITION=agency`, wizard submit redirects to `/order-received` (not `/kits/:id`).
@@ -95,3 +103,11 @@ Acceptance checks:
 - [ ] **API boundaries:** request/response shapes consistent with existing routes and schemas.
 - [ ] **DB:** migrations/schema aligned if tables or columns changed (`server/src/db/schema.ts`).
 - [ ] **Docs:** for substantive changes (schema, API, prompts, env, security, stack), update the files required by [`docs/TASKING.md`](TASKING.md) → Documentation sync; optionally adjust routing in [`docs/CONTEXT_INDEX.md`](CONTEXT_INDEX.md) if doc map changes.
+
+## Manual regression quick list (pre-merge gate)
+
+- [ ] `GET /api/analytics/wizard-summary` is blocked without admin context.
+- [ ] `POST /api/auth/agency-admin/login` throttles after repeated attempts and returns `429`.
+- [ ] `POST /api/kits/generate?stream=1` emits safe `error` payloads in production mode.
+- [ ] Playwright smoke (`npm run test:e2e`) passes against local demo stack.
+- [ ] Any RLS changes are validated against the target Supabase project before deploy.

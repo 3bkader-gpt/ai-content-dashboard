@@ -109,6 +109,7 @@ npm run test:e2e
 ```
 
 Runs dev servers in demo mode with a temporary DB.
+Set `PLAYWRIGHT_BASE_URL` when you need a non-default URL (default: `http://localhost:5173`).
 
 ---
 
