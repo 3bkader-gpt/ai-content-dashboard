@@ -6,6 +6,7 @@ export type EntitlementsResponse = {
   user_id: string | null;
   email: string;
   display_name: string;
+  is_premium: boolean;
   plan_code: "starter" | "early_adopter" | "admin_unlimited";
   usage: {
     period_key: string;

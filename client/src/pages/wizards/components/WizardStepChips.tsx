@@ -8,21 +8,26 @@ export default function WizardStepChips(props: {
   stepOrder: StepId[];
   currentStep: number;
   stepTitles: Record<StepId, string>;
+  blockedSteps?: number[];
+  onStepClick?: (index: number) => void;
 }) {
   return (
     <div className="mb-6 flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:mb-8 sm:flex-wrap sm:overflow-visible">
       {props.stepOrder.map((id, i) => (
-        <span
+        <button
           key={id}
+          type="button"
+          onClick={() => props.onStepClick?.(i)}
           className={cn(
             "whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+            props.blockedSteps?.includes(i) && "opacity-60",
             i === props.currentStep
               ? "border-primary/30 bg-primary/20 text-primary dark:border-primary/45 dark:bg-primary/15 dark:text-secondary"
               : "border-transparent bg-surface-container-lowest text-on-surface-variant dark:bg-earth-darkBg/55 dark:text-secondary/70"
           )}
         >
           {i + 1}. {props.stepTitles[id]}
-        </span>
+        </button>
       ))}
     </div>
   );

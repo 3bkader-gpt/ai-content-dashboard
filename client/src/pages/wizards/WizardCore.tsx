@@ -62,8 +62,6 @@ type WizardCoreProps = {
 };
 
 const LIMITS = BRIEF_LIMITS;
-/** Must match server `PACKAGE_HOOKS_PER_IDEA` (packageConstants). */
-const CONTENT_PACKAGE_HOOKS_PER_IDEA = 2;
 const FALLBACK_INDUSTRY_OPTIONS: { slug: string; name: string }[] = (
   ["ecommerce", "real-estate", "restaurants", "clinics", "education", "general"] as const
 ).map((slug) => ({ slug, name: slug.replace(/-/g, " ") }));
@@ -144,70 +142,16 @@ const btnPrimary =
 const btnSecondary =
   "rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#111] px-6 py-3 text-sm font-semibold text-gray-900 dark:text-white transition-all hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-white/20";
 
-type NumericBoundInputProps = {
-  id: string;
-  className: string;
-  value: number;
-  min: number;
-  max: number;
-  fallback: number;
-  startEmptyWhenFallback: boolean;
-  onCommit: (value: number) => void;
-  onBlur?: () => void;
-};
-
-function NumericBoundInput(props: NumericBoundInputProps) {
-  const { id, className, value, min, max, fallback, startEmptyWhenFallback, onCommit, onBlur } = props;
-  const [text, setText] = useState(() => (startEmptyWhenFallback && value === fallback ? "" : String(value)));
-  const [isFocused, setIsFocused] = useState(false);
-
-  useEffect(() => {
-    if (isFocused) return;
-    setText(startEmptyWhenFallback && value === fallback ? "" : String(value));
-  }, [fallback, isFocused, startEmptyWhenFallback, value]);
-
-  const commit = () => {
-    const raw = text.trim();
-    const next = raw === "" ? fallback : clamp(Number(raw), min, max);
-    onCommit(next);
-    setText(startEmptyWhenFallback && next === fallback ? "" : String(next));
-    onBlur?.();
-  };
-
-  return (
-    <input
-      id={id}
-      type="text"
-      inputMode="numeric"
-      pattern="[0-9]*"
-      className={className}
-      value={text}
-      onFocus={() => setIsFocused(true)}
-      onChange={(e) => {
-        const digits = e.target.value.replace(/[^\d]/g, "");
-        setText(digits);
-      }}
-      onBlur={() => {
-        setIsFocused(false);
-        commit();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          commit();
-        }
-      }}
-      aria-describedby={`${id}_hint`}
-    />
-  );
-}
-
 export default function WizardCore(props: WizardCoreProps) {
   const { entitlements } = useAuth();
   const currentPlan = entitlements?.plan_code ?? "starter";
+  const isPremiumUser = Boolean(entitlements?.is_premium);
   const referenceImageLocked = currentPlan === "starter";
   const nav = useNavigate();
   const maxStep = props.stepOrder.length - 1;
+  const premiumStepIndex = props.stepOrder.indexOf("volume");
+  const freeSubmitStep = premiumStepIndex > 0 ? premiumStepIndex - 1 : maxStep;
+  const effectiveMaxStep = isPremiumUser ? maxStep : freeSubmitStep;
   const wizardType = useMemo(() => getWizardTypeFromDraftKey(props.draftKey), [props.draftKey]);
   const mergedDefaults = useMemo(() => ({ ...initialBriefForm(), ...(props.defaults ?? {}) }), [props.defaults]);
   const stepFieldMap = useMemo(() => ({ ...STEP_FIELDS, ...(props.stepFields ?? {}) }), [props.stepFields]);
@@ -221,6 +165,7 @@ export default function WizardCore(props: WizardCoreProps) {
   const [tipIndex, setTipIndex] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(false);
   const [displayProgress, setDisplayProgress] = useState(0);
+  const [stepBlockError, setStepBlockError] = useState<string | null>(null);
 
   const {
     register,
@@ -311,6 +256,12 @@ export default function WizardCore(props: WizardCoreProps) {
     return () => subscription.unsubscribe();
   }, [watch]);
 
+  useEffect(() => {
+    if (step > effectiveMaxStep) {
+      setStep(effectiveMaxStep);
+    }
+  }, [effectiveMaxStep, setStep, step]);
+
   const telemetry = useWizardTelemetry({
     wizardType,
     draftKey: props.draftKey,
@@ -369,7 +320,7 @@ export default function WizardCore(props: WizardCoreProps) {
 
   const { next } = useWizardOrchestrator({
     step,
-    maxStep,
+    maxStep: effectiveMaxStep,
     stepOrder: props.stepOrder,
     stepFieldMap,
     trigger,
@@ -408,7 +359,8 @@ export default function WizardCore(props: WizardCoreProps) {
     clearDraft: () => localStorage.removeItem(props.draftKey),
     navigateToKit: (kitId) => {
       if (agencyEdition) {
-        nav(`/order-received?kit=${encodeURIComponent(kitId)}`);
+        const intent = isPremiumUser ? "paid" : "free";
+        nav(`/order-received?kit=${encodeURIComponent(kitId)}&intent=${intent}`);
         return;
       }
       nav(`/kits/${kitId}`);
@@ -474,7 +426,7 @@ export default function WizardCore(props: WizardCoreProps) {
   }, [loading, reduceMotion, submission.streamProgress]);
 
   const currentStep = props.stepOrder[step]!;
-  const isFinalStep = step === maxStep;
+  const isFinalStep = step === effectiveMaxStep;
   const brandNameValue = watch("brand_name");
   const industryValue = watch("industry");
   const mainGoalValue = watch("main_goal");
@@ -546,7 +498,20 @@ export default function WizardCore(props: WizardCoreProps) {
               />
             )}
 
-            <WizardStepChips stepOrder={props.stepOrder} currentStep={step} stepTitles={props.stepTitles} />
+            <WizardStepChips
+              stepOrder={props.stepOrder}
+              currentStep={step}
+              stepTitles={props.stepTitles}
+              blockedSteps={!isPremiumUser && premiumStepIndex >= 0 ? [premiumStepIndex] : []}
+              onStepClick={(targetStep) => {
+                if (!isPremiumUser && premiumStepIndex >= 0 && targetStep >= premiumStepIndex) {
+                  setStepBlockError("يجب الدفع أولاً للحصول على الإعدادات المتقدمة");
+                  return;
+                }
+                setStep(targetStep);
+                setStepBlockError(null);
+              }}
+            />
 
             {variantB && currentStep === "diagnosis" && (
               <div className="space-y-6">
@@ -1041,155 +1006,128 @@ export default function WizardCore(props: WizardCoreProps) {
 
             {currentStep === "volume" && (
               <div className="space-y-6">
-                {(showField("volume", "num_posts") || showField("volume", "num_image_designs")) && (
-                  <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
-                    {showField("volume", "num_posts") && (
-                      <div>
-                        <label htmlFor="num_posts" className={labelCls}>Number of posts ({LIMITS.num_posts.min}–{LIMITS.num_posts.max})</label>
-                        <div className={fieldShell}>
-                          <Controller
-                            name="num_posts"
-                            control={control}
-                            render={({ field }) => (
-                              <NumericBoundInput
-                                id="num_posts"
-                                className={inputCls}
-                                value={field.value}
-                                min={LIMITS.num_posts.min}
-                                max={LIMITS.num_posts.max}
-                                fallback={LIMITS.num_posts.fallback}
-                                startEmptyWhenFallback={!showDraftBanner}
-                                onCommit={field.onChange}
-                                onBlur={field.onBlur}
-                              />
-                            )}
-                          />
-                        </div>
-                        <p id="num_posts_hint" className="mt-1 text-xs text-on-surface-variant">Type directly (0–{LIMITS.num_posts.max}).</p>
-                        {errors.num_posts && <p className={errCls}>{errors.num_posts.message}</p>}
-                      </div>
-                    )}
-                    {showField("volume", "num_image_designs") && (
-                      <div>
-                        <label htmlFor="num_image_designs" className={labelCls}>Image design count ({LIMITS.num_image_designs.min}–{LIMITS.num_image_designs.max})</label>
-                        <div className={fieldShell}>
-                          <Controller
-                            name="num_image_designs"
-                            control={control}
-                            render={({ field }) => (
-                              <NumericBoundInput
-                                id="num_image_designs"
-                                className={inputCls}
-                                value={field.value}
-                                min={LIMITS.num_image_designs.min}
-                                max={LIMITS.num_image_designs.max}
-                                fallback={LIMITS.num_image_designs.fallback}
-                                startEmptyWhenFallback={!showDraftBanner}
-                                onCommit={field.onChange}
-                                onBlur={field.onBlur}
-                              />
-                            )}
-                          />
-                        </div>
-                        <p id="num_image_designs_hint" className="mt-1 text-xs text-on-surface-variant">Set 0 if you only want videos.</p>
-                        {errors.num_image_designs && <p className={errCls}>{errors.num_image_designs.message}</p>}
-                      </div>
-                    )}
-                  </div>
-                )}
-                {showField("volume", "num_video_prompts") && (
-                  <div>
-                    <label htmlFor="num_video_prompts" className={labelCls}>Video count ({LIMITS.num_video_prompts.min}–{LIMITS.num_video_prompts.max})</label>
-                    <div className={fieldShell}>
-                      <Controller
-                        name="num_video_prompts"
-                        control={control}
-                        render={({ field }) => (
-                          <NumericBoundInput
-                            id="num_video_prompts"
-                            className={inputCls}
-                            value={field.value}
-                            min={LIMITS.num_video_prompts.min}
-                            max={LIMITS.num_video_prompts.max}
-                            fallback={LIMITS.num_video_prompts.fallback}
-                            startEmptyWhenFallback={!showDraftBanner}
-                            onCommit={field.onChange}
-                            onBlur={field.onBlur}
-                          />
+                <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50/40 dark:bg-[#121214] p-4">
+                  <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Premium Strategic Brief</p>
+                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">صمّم الاستراتيجية في خطوات سريعة بدل تعبئة نموذج طويل.</p>
+                </div>
+                <div>
+                  <label className={labelCls}>Content pillars mix</label>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {[
+                      { key: "Direct Sales", label: "بيعي مباشر", icon: "sell" },
+                      { key: "Educational", label: "تعليمي", icon: "school" },
+                      { key: "Engagement", label: "تفاعلي", icon: "forum" },
+                    ].map((pillar) => (
+                      <button
+                        key={pillar.key}
+                        type="button"
+                        onClick={() =>
+                          setSelectionState((prev) => ({
+                            ...prev,
+                            bestContentTypesSelected: toggleListValue(prev.bestContentTypesSelected, pillar.key),
+                          }))
+                        }
+                        className={cn(
+                          "rounded-xl border p-3 text-start",
+                          selectionState.bestContentTypesSelected.includes(pillar.key)
+                            ? "border-gray-900 dark:border-white bg-gray-100 dark:bg-white/10"
+                            : "border-gray-200 dark:border-white/10"
                         )}
-                      />
-                    </div>
-                    <p id="num_video_prompts_hint" className="mt-1 text-xs text-on-surface-variant">Set 0 if you only want images.</p>
-                    {errors.num_video_prompts && <p className={errCls}>{errors.num_video_prompts.message}</p>}
+                      >
+                        <p className="text-xs text-gray-500">{pillar.icon}</p>
+                        <p className="mt-1 text-sm font-semibold">{pillar.label}</p>
+                      </button>
+                    ))}
                   </div>
-                )}
-                {showField("volume", "content_package_idea_count") && (
-                  <div>
-                    <label htmlFor="content_package_idea_count" className={labelCls}>
-                      Content package — idea count ({LIMITS.content_package_idea_count.min}–{LIMITS.content_package_idea_count.max})
-                    </label>
-                    <div className={fieldShell}>
-                      <Controller
-                        name="content_package_idea_count"
-                        control={control}
-                        render={({ field }) => (
-                          <NumericBoundInput
-                            id="content_package_idea_count"
-                            className={inputCls}
-                            value={field.value}
-                            min={LIMITS.content_package_idea_count.min}
-                            max={LIMITS.content_package_idea_count.max}
-                            fallback={LIMITS.content_package_idea_count.fallback}
-                            startEmptyWhenFallback={!showDraftBanner}
-                            onCommit={field.onChange}
-                            onBlur={field.onBlur}
-                          />
+                </div>
+                <div>
+                  <label className={labelCls}>Platform-specific optimization</label>
+                  <div className="flex flex-wrap gap-2">
+                    {["LinkedIn", "TikTok/Reels", "Instagram"].map((platform) => (
+                      <button
+                        key={platform}
+                        type="button"
+                        onClick={() =>
+                          setSelectionState((prev) => ({
+                            ...prev,
+                            platformsSelected: toggleListValue(prev.platformsSelected, platform),
+                          }))
+                        }
+                        className={cn(
+                          "rounded-full border px-4 py-2 text-xs font-semibold",
+                          selectionState.platformsSelected.includes(platform)
+                            ? "border-gray-900 dark:border-white bg-gray-900 text-white dark:bg-white dark:text-black"
+                            : "border-gray-200 dark:border-white/10"
                         )}
-                      />
-                    </div>
-                    {errors.content_package_idea_count && (
-                      <p className={errCls}>{errors.content_package_idea_count.message}</p>
-                    )}
-                    <p className="mt-1 text-xs text-on-surface-variant">
-                      Used only if you enable the content ideas package below: same number of strategic ideas and reusable templates; hook lines = this × 2.
-                    </p>
+                      >
+                        {platform}
+                      </button>
+                    ))}
                   </div>
-                )}
-                {showField("volume", "include_content_package") && (
-                  <div className="flex gap-3 rounded-xl border border-outline/20 bg-surface-container-low/60 p-4 dark:border-outline/25 dark:bg-earth-darkCard/40">
-                    <input
-                      id="include_content_package"
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 shrink-0 rounded border-outline text-primary focus:ring-primary/40"
-                      {...register("include_content_package")}
+                </div>
+                <div>
+                  <label className={labelCls}>Micro tone of voice</label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {[
+                      { key: "Luxury", label: "Luxury" },
+                      { key: "Street/Slang", label: "Street / Slang" },
+                      { key: "Sarcastic", label: "Sarcastic" },
+                      { key: "Egypt Colloquial Social", label: "Egypt colloquial preset" },
+                    ].map((tone) => (
+                      <button
+                        key={tone.key}
+                        type="button"
+                        onClick={() =>
+                          setSelectionState((prev) => ({
+                            ...prev,
+                            brandToneSelected: tone.key,
+                            brandToneOther: "",
+                          }))
+                        }
+                        className={cn(
+                          "rounded-xl border px-3 py-2 text-start text-sm",
+                          selectionState.brandToneSelected === tone.key
+                            ? "border-gray-900 dark:border-white bg-gray-100 dark:bg-white/10"
+                            : "border-gray-200 dark:border-white/10"
+                        )}
+                      >
+                        {tone.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="premium_audience_pain" className={labelCls}>Audience deep dive</label>
+                  <div className={fieldShell}>
+                    <textarea
+                      id="premium_audience_pain"
+                      className={textareaCls}
+                      placeholder="إيه أكتر حاجة بتضايق زبونك؟"
+                      value={watch("competitors") || ""}
+                      onChange={(e) => setValue("competitors", e.target.value, { shouldDirty: true })}
                     />
-                    <div className="min-w-0">
-                      <label htmlFor="include_content_package" className="text-sm font-medium text-on-surface cursor-pointer">
-                        Include content ideas package
-                      </label>
-                      <p className="mt-1 text-xs text-on-surface-variant leading-relaxed">
-                        When enabled, adds{" "}
-                        <strong className="text-on-surface">
-                          {watch("content_package_idea_count")} ideas
-                        </strong>
-                        ,{" "}
-                        <strong className="text-on-surface">
-                          {watch("content_package_idea_count")} templates
-                        </strong>
-                        , and{" "}
-                        <strong className="text-on-surface">
-                          {watch("content_package_idea_count") * CONTENT_PACKAGE_HOOKS_PER_IDEA} hook lines
-                        </strong>{" "}
-                        ({CONTENT_PACKAGE_HOOKS_PER_IDEA} per idea) via <strong className="text-on-surface">three</strong> extra Gemini calls after the main kit (ideas, then hooks and templates in parallel). This is{" "}
-                        <strong className="text-on-surface">in addition to</strong> the main kit <strong className="text-on-surface">video prompts</strong> you set above — not a replacement. Requires{" "}
-                        <code className="rounded bg-earth-alt px-1 text-[10px] dark:bg-surface-container-highest">CONTENT_PACKAGE_CHAIN_ENABLED</code> on the server; generation takes longer.
-                      </p>
-                      {errors.include_content_package && (
-                        <p className={errCls}>{errors.include_content_package.message}</p>
-                      )}
-                    </div>
                   </div>
-                )}
+                </div>
+                <div>
+                  <label className={labelCls}>Posting cadence</label>
+                  <div className="flex flex-wrap gap-2">
+                    {["3 days/week", "5 days/week", "30-day plan"].map((cadence) => (
+                      <button
+                        key={cadence}
+                        type="button"
+                        onClick={() => setValue("campaign_duration", cadence, { shouldDirty: true })}
+                        className={cn(
+                          "rounded-full border px-4 py-2 text-xs font-semibold",
+                          watch("campaign_duration") === cadence
+                            ? "border-gray-900 dark:border-white bg-gray-900 text-white dark:bg-white dark:text-black"
+                            : "border-gray-200 dark:border-white/10"
+                        )}
+                      >
+                        {cadence}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 {entitlements && (
                   <div className="rounded-xl border border-outline/20 bg-surface-container-low/60 p-4 text-xs text-on-surface-variant dark:border-outline/25 dark:bg-earth-darkCard/40">
                     <p className="font-semibold text-on-surface">Current plan usage</p>
@@ -1203,6 +1141,7 @@ export default function WizardCore(props: WizardCoreProps) {
               </div>
             )}
 
+            {stepBlockError && <p className="mt-4 text-red-500">{stepBlockError}</p>}
             {err && <p className="mt-4 text-error dark:text-brand-accent">{err}</p>}
 
             {isFinalStep && !loading && (
@@ -1252,7 +1191,7 @@ export default function WizardCore(props: WizardCoreProps) {
               <button type="button" className={btnSecondary + " w-full sm:w-auto"} onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0 || loading}>
                 Back
               </button>
-              {step < maxStep ? (
+              {step < effectiveMaxStep ? (
                 <button type="button" className={btnPrimary + " w-full sm:w-auto"} onClick={() => void next()} disabled={loading}>
                   Next
                 </button>
@@ -1263,7 +1202,15 @@ export default function WizardCore(props: WizardCoreProps) {
                   onClick={handleSubmit(onValidSubmit)}
                   disabled={loading}
                 >
-                  {loading ? (variantB ? "Building your diagnosis..." : "Generating...") : variantB ? "Show my diagnosis and plan" : "Generate my kit now"}
+                  {loading
+                    ? variantB
+                      ? "Building your diagnosis..."
+                      : "Generating..."
+                    : !isPremiumUser
+                      ? "Submit Request (Get Free Test)"
+                      : variantB
+                        ? "Show my diagnosis and plan"
+                        : "Generate my kit now"}
                 </button>
               )}
             </div>

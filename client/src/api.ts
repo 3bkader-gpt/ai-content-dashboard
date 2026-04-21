@@ -35,6 +35,8 @@ export {
   getHealth,
 } from "./api/misc";
 export type { HelpTopicsResponse } from "./api/misc";
+export { submitPremiumLead } from "./api/leads";
+export type { PremiumLeadPayload } from "./api/leads";
 export { getEntitlements, syncAuthDevice } from "./api/auth";
 export type { EntitlementsResponse } from "./api/auth";
 export {

@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { openWhatsAppSales } from "../lib/whatsappSales";
+import { submitPremiumLead } from "../api";
 
 type PlanId = "starter" | "early_adopter";
 
@@ -14,7 +15,14 @@ function FeatureItem({ children }: { children: string }) {
 }
 
 export default function PricingPage() {
-  const { entitlements } = useAuth();
+  const { entitlements, session } = useAuth();
+  const navigate = useNavigate();
+  const [showLeadModal, setShowLeadModal] = useState(false);
+  const [leadName, setLeadName] = useState("");
+  const [leadPhone, setLeadPhone] = useState("");
+  const [leadEmail, setLeadEmail] = useState("");
+  const [leadError, setLeadError] = useState<string | null>(null);
+  const [submittingLead, setSubmittingLead] = useState(false);
 
   const currentPlan = entitlements?.plan_code ?? "starter";
 
@@ -52,7 +60,33 @@ export default function PricingPage() {
 
   const onPlanClick = (plan: PlanId) => {
     if (plan === "starter") return;
-    openWhatsAppSales();
+    setLeadName(session?.user?.user_metadata?.full_name ?? "");
+    setLeadEmail(session?.user?.email ?? "");
+    setLeadPhone("");
+    setLeadError(null);
+    setShowLeadModal(true);
+  };
+
+  const submitLead = async () => {
+    if (!leadName.trim() || !leadPhone.trim()) {
+      setLeadError("الاسم ورقم الهاتف مطلوبان.");
+      return;
+    }
+    setSubmittingLead(true);
+    setLeadError(null);
+    try {
+      await submitPremiumLead({
+        name: leadName.trim(),
+        phone: leadPhone.trim(),
+        email: leadEmail.trim() || undefined,
+      });
+      setShowLeadModal(false);
+      navigate("/order-received?intent=paid");
+    } catch (error) {
+      setLeadError(error instanceof Error ? error.message : "تعذر إرسال الطلب الآن، حاول مرة أخرى.");
+    } finally {
+      setSubmittingLead(false);
+    }
   };
 
   return (
@@ -168,6 +202,54 @@ export default function PricingPage() {
       <div className="max-w-2xl mx-auto rounded-2xl border border-gray-200 dark:border-white/10 bg-white/50 dark:bg-[#111] px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-400 shadow-sm backdrop-blur-sm">
         الدفع يتم حاليًا مباشرة عبر واتساب (فودافون كاش / انستاباي) ضمن نموذج Productized Service لمرة واحدة.
       </div>
+
+      {showLeadModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#111] p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">طلب الباقة المدفوعة</h3>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">أدخل بيانات التواصل لإرسال طلبك لفريق المبيعات.</p>
+            <div className="mt-4 space-y-3">
+              <input
+                className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-transparent px-3 py-2 text-sm"
+                placeholder="الاسم"
+                value={leadName}
+                onChange={(e) => setLeadName(e.target.value)}
+              />
+              <input
+                className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-transparent px-3 py-2 text-sm"
+                placeholder="رقم الهاتف"
+                value={leadPhone}
+                onChange={(e) => setLeadPhone(e.target.value)}
+              />
+              <input
+                className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-transparent px-3 py-2 text-sm"
+                placeholder="البريد الإلكتروني (اختياري)"
+                value={leadEmail}
+                onChange={(e) => setLeadEmail(e.target.value)}
+              />
+              {leadError && <p className="text-xs text-red-500">{leadError}</p>}
+            </div>
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                className="flex-1 rounded-xl border border-gray-200 dark:border-white/10 px-3 py-2 text-sm"
+                onClick={() => setShowLeadModal(false)}
+                disabled={submittingLead}
+              >
+                إلغاء
+              </button>
+              <button
+                type="button"
+                className="flex-1 rounded-xl bg-gray-900 px-3 py-2 text-sm font-semibold text-white dark:bg-white dark:text-black"
+                onClick={() => void submitLead()}
+                disabled={submittingLead}
+              >
+                {submittingLead ? "جارٍ الإرسال..." : "إرسال الطلب"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
