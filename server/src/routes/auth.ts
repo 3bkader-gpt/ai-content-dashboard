@@ -77,11 +77,13 @@ export function createAuthRouter(mw: (c: import("hono").Context, next: Next) => 
     let userId: string | null = null;
     let email = "";
     let displayName = "";
+    let isPremium = false;
     if (authUser) {
       const user = await ensureUserFromSupabase(db, authUser);
       userId = user.id;
       email = user.email;
       displayName = user.displayName;
+      isPremium = user.isPremium;
     }
     const access = await resolveAccessContext(db, {
       userId,
@@ -92,6 +94,7 @@ export function createAuthRouter(mw: (c: import("hono").Context, next: Next) => 
       user_id: access.userId,
       email,
       display_name: displayName,
+      is_premium: isPremium,
       plan_code: access.planCode,
       usage: {
         period_key: access.usage.periodKey,

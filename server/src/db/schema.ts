@@ -61,8 +61,19 @@ export const users = socialGeni.table("users", {
   email: text("email").notNull().default(""),
   displayName: text("display_name").notNull().default(""),
   isAdmin: boolean("is_admin").notNull().default(false),
+  isPremium: boolean("is_premium").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull(),
+});
+
+export const premiumLeads = socialGeni.table("premium_leads", {
+  id: text("id").primaryKey(),
+  userId: text("user_id"),
+  name: text("name").notNull(),
+  phone: text("phone").notNull(),
+  email: text("email"),
+  source: text("source").notNull().default("pricing_modal"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
 });
 
 export const userDevices = socialGeni.table("user_devices", {

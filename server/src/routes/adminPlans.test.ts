@@ -35,4 +35,20 @@ describe("admin plans auth boundary", () => {
 
     expect(res.status).toBe(401);
   });
+
+  it("rejects API_SECRET bearer-only access to premium upgrade endpoint", async () => {
+    const { createAdminPlansRouter } = await import("./adminPlans.js");
+    const app = createAdminPlansRouter(async (_c, next) => next());
+
+    const res = await app.request("/api/admin/users/user-1/upgrade", {
+      method: "PATCH",
+      headers: {
+        Authorization: "Bearer service-secret",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ is_premium: true }),
+    });
+
+    expect(res.status).toBe(401);
+  });
 });

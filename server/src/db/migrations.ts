@@ -129,6 +129,9 @@ CREATE TABLE IF NOT EXISTS social_geni.users (
 ALTER TABLE social_geni.users
 ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE;
 
+ALTER TABLE social_geni.users
+ADD COLUMN IF NOT EXISTS is_premium BOOLEAN NOT NULL DEFAULT FALSE;
+
 CREATE TABLE IF NOT EXISTS social_geni.user_devices (
   id TEXT PRIMARY KEY NOT NULL,
   user_id TEXT NOT NULL,
@@ -275,6 +278,16 @@ CREATE TABLE IF NOT EXISTS social_geni.extras_waitlist (
   id TEXT PRIMARY KEY NOT NULL,
   tool_id TEXT NOT NULL,
   email TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS social_geni.premium_leads (
+  id TEXT PRIMARY KEY NOT NULL,
+  user_id TEXT,
+  name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  email TEXT,
+  source TEXT NOT NULL DEFAULT 'pricing_modal',
   created_at TIMESTAMPTZ NOT NULL
 );
 

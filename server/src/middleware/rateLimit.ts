@@ -271,3 +271,20 @@ export const analyticsIngestRateLimit = createRateLimit({
   namespace: "analytics-events-ip",
   keyLabel: "IP",
 });
+
+const PREMIUM_LEAD_LIMIT = Math.max(
+  3,
+  Math.min(parseInt(process.env.PREMIUM_LEAD_RATE_LIMIT ?? "20", 10) || 20, 120),
+);
+
+const PREMIUM_LEAD_WINDOW_MS = Math.max(
+  30_000,
+  Math.min(parseInt(process.env.PREMIUM_LEAD_RATE_WINDOW_MS ?? String(60_000), 10) || 60_000, 10 * 60_000),
+);
+
+export const premiumLeadRateLimit = createRateLimit({
+  limit: PREMIUM_LEAD_LIMIT,
+  windowMs: PREMIUM_LEAD_WINDOW_MS,
+  namespace: "premium-lead-ip",
+  keyLabel: "IP",
+});

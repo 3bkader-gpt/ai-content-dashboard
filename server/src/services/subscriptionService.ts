@@ -97,7 +97,7 @@ export function getPlanSpec(planCode: PlanCode): PlanSpec {
 export async function ensureUserFromSupabase(
   db: typeof dbType,
   authUser: AuthUserClaims
-): Promise<{ id: string; email: string; displayName: string }> {
+): Promise<{ id: string; email: string; displayName: string; isPremium: boolean }> {
   const existing = (
     await db
       .select()
@@ -115,9 +115,14 @@ export async function ensureUserFromSupabase(
         .update(users)
         .set({ email: nextEmail, displayName: nextName, isAdmin: nextIsAdmin, updatedAt: now })
         .where(eq(users.id, existing.id));
-      return { id: existing.id, email: nextEmail, displayName: nextName };
+      return { id: existing.id, email: nextEmail, displayName: nextName, isPremium: existing.isPremium };
     }
-    return { id: existing.id, email: existing.email, displayName: existing.displayName };
+    return {
+      id: existing.id,
+      email: existing.email,
+      displayName: existing.displayName,
+      isPremium: existing.isPremium,
+    };
   }
   const id = nanoid();
   await db.insert(users).values({
@@ -129,7 +134,12 @@ export async function ensureUserFromSupabase(
     createdAt: now,
     updatedAt: now,
   });
-  return { id, email: authUser.email || "", displayName: authUser.displayName || "User" };
+  return {
+    id,
+    email: authUser.email || "",
+    displayName: authUser.displayName || "User",
+    isPremium: false,
+  };
 }
 
 export async function linkDeviceToUserAndClaimKits(

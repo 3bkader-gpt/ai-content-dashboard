@@ -24,6 +24,10 @@ const roleByEmailBodySchema = z.object({
   is_admin: z.boolean(),
 });
 
+const premiumBodySchema = z.object({
+  is_premium: z.boolean(),
+});
+
 async function requireAdminAccess(c: import("hono").Context): Promise<Response | null> {
   if (await isAgencyAdminRequest(c)) return null;
   const authUser = getAuthUser(c);
@@ -89,6 +93,7 @@ export function createAdminPlansRouter(
         email: user.email,
         display_name: user.displayName,
         is_admin: user.isAdmin,
+        is_premium: user.isPremium,
       },
       subscriptions: rows.map((r) => ({
         id: r.id,
@@ -174,6 +179,7 @@ export function createAdminPlansRouter(
         email: users.email,
         display_name: users.displayName,
         is_admin: users.isAdmin,
+        is_premium: users.isPremium,
         created_at: users.createdAt,
       })
       .from(users)
@@ -235,6 +241,38 @@ export function createAdminPlansRouter(
       .where(eq(users.id, targetUserId));
 
     return c.json({ ok: true });
+  });
+
+  app.patch("/api/admin/users/:userId/upgrade", async (c) => {
+    const blocked = await requireAdminAccess(c);
+    if (blocked) return blocked;
+    const targetUserId = c.req.param("userId");
+
+    let body: z.infer<typeof premiumBodySchema>;
+    try {
+      body = premiumBodySchema.parse(await c.req.json());
+    } catch {
+      return c.json({ error: "Invalid body." }, 400);
+    }
+
+    const target = (await db.select().from(users).where(eq(users.id, targetUserId)).limit(1))[0];
+    if (!target) return c.json({ error: "User not found." }, 404);
+
+    const now = new Date();
+    await db
+      .update(users)
+      .set({
+        isPremium: body.is_premium,
+        updatedAt: now,
+      })
+      .where(eq(users.id, targetUserId));
+
+    return c.json({
+      ok: true,
+      user_id: targetUserId,
+      is_premium: body.is_premium,
+      updated_at: now.toISOString(),
+    });
   });
 
   app.post("/api/admin/users/promote-by-email", async (c) => {
