@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import type { Next } from "hono";
+import { timingSafeEqual } from "node:crypto";
 import { db } from "../db/index.js";
 import { getAuthUser } from "../middleware/userAuth.js";
 import {
@@ -44,6 +45,18 @@ const agencyAdminLoginSchema = z.object({
 
 function isAgencyEdition() {
   return String(process.env.APP_EDITION ?? "").trim().toLowerCase() === "agency";
+}
+
+function timingSafeStringEquals(input: string, expected: string): boolean {
+  const inputBuffer = Buffer.from(input, "utf8");
+  const expectedBuffer = Buffer.from(expected, "utf8");
+  if (inputBuffer.length !== expectedBuffer.length) {
+    // Equal-length fallback to keep timing profile closer for mismatch lengths.
+    const padding = Buffer.alloc(Math.max(inputBuffer.length, expectedBuffer.length, 1));
+    timingSafeEqual(padding, padding);
+    return false;
+  }
+  return timingSafeEqual(inputBuffer, expectedBuffer);
 }
 
 export function createAuthRouter(mw: (c: import("hono").Context, next: Next) => Promise<void | Response>) {
@@ -139,7 +152,9 @@ export function createAuthRouter(mw: (c: import("hono").Context, next: Next) => 
     if (!expectedPassword) {
       return c.json({ error: "Server misconfiguration: ADMIN_PASSWORD is missing." }, 503);
     }
-    if (body.username !== expectedUsername || body.password !== expectedPassword) {
+    const usernameMatches = timingSafeStringEquals(body.username, expectedUsername);
+    const passwordMatches = timingSafeStringEquals(body.password, expectedPassword);
+    if (!usernameMatches || !passwordMatches) {
       return c.json({ error: "Invalid username or password." }, 401);
     }
 

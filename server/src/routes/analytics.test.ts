@@ -41,6 +41,9 @@ async function appRequest(path: string, init?: RequestInit) {
 describe("analytics routes auth boundary", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.resetModules();
+    process.env.ANALYTICS_INGEST_RATE_LIMIT = "2";
+    process.env.ANALYTICS_INGEST_RATE_WINDOW_MS = "60000";
     isAgencyAdminRequest.mockResolvedValue(false);
     getAuthUser.mockReturnValue(null);
     dbSelect.mockReturnValue({
@@ -58,7 +61,7 @@ describe("analytics routes auth boundary", () => {
   it("keeps wizard-events ingestion open", async () => {
     const res = await appRequest("/analytics/wizard-events", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-real-ip": "9.9.9.1" },
       body: JSON.stringify({
         events: [{ name: "wizard_opened", ts: Date.now() }],
       }),
@@ -75,7 +78,7 @@ describe("analytics routes auth boundary", () => {
     isAgencyAdminRequest.mockResolvedValue(true);
     const ingest = await appRequest("/analytics/wizard-events", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-real-ip": "9.9.9.2" },
       body: JSON.stringify({
         events: [{ name: "wizard_opened", ts: Date.now() }],
       }),
@@ -93,6 +96,60 @@ describe("analytics routes auth boundary", () => {
     dbLimit.mockResolvedValue([{ isAdmin: true }]);
     const res = await appRequest("/analytics/wizard-summary");
     expect(res.status).toBe(200);
+  });
+
+  it("rejects oversized analytics text fields", async () => {
+    const res = await appRequest("/analytics/wizard-events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-real-ip": "9.9.9.3" },
+      body: JSON.stringify({
+        events: [
+          {
+            name: "wizard_error",
+            ts: Date.now(),
+            error: "x".repeat(501),
+          },
+        ],
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("throttles analytics ingestion spam by IP", async () => {
+    const statuses: number[] = [];
+    for (let i = 0; i < 12; i += 1) {
+      const res = await appRequest("/analytics/wizard-events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-real-ip": "9.9.9.4" },
+        body: JSON.stringify({
+          events: [{ name: "wizard_opened", ts: Date.now() }],
+        }),
+      });
+      statuses.push(res.status);
+    }
+    expect(statuses.slice(0, 10).every((code) => code === 202)).toBe(true);
+    expect(statuses[10]).toBe(429);
+    expect(statuses[11]).toBe(429);
+  });
+
+  it("rejects payloads above content-length cap", async () => {
+    process.env.ANALYTICS_MAX_CONTENT_LENGTH_BYTES = "1024";
+    vi.resetModules();
+    const largeValidEvents = Array.from({ length: 100 }, () => ({
+      name: "wizard_opened",
+      ts: Date.now(),
+    }));
+    const res = await appRequest("/analytics/wizard-events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-real-ip": "9.9.9.5",
+      },
+      body: JSON.stringify({
+        events: largeValidEvents,
+      }),
+    });
+    expect(res.status).toBe(413);
   });
 });
 

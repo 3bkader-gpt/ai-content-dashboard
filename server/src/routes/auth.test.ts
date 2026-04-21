@@ -44,7 +44,7 @@ describe("auth routes admin login throttling", () => {
 
   it("applies rate-limit on agency-admin login", async () => {
     const body = JSON.stringify({ username: "admin", password: "pass-123" });
-    const headers = { "Content-Type": "application/json", "x-forwarded-for": "2.2.2.2" };
+    const headers = { "Content-Type": "application/json", "x-real-ip": "2.2.2.2" };
     const first = await appRequest("/api/auth/agency-admin/login", {
       method: "POST",
       headers,
@@ -64,6 +64,17 @@ describe("auth routes admin login throttling", () => {
     });
     expect(third.status).toBe(429);
     expect(third.headers.get("Retry-After")).toBeTruthy();
+  });
+
+  it("keeps invalid credentials contract unchanged", async () => {
+    const res = await appRequest("/api/auth/agency-admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-real-ip": "2.2.2.3" },
+      body: JSON.stringify({ username: "admin", password: "wrong-pass" }),
+    });
+    expect(res.status).toBe(401);
+    const body = await res.json();
+    expect(body.error).toBe("Invalid username or password.");
   });
 });
 

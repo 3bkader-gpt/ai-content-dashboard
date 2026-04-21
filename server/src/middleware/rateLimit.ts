@@ -26,6 +26,32 @@ type RateLimitOpts = {
   keyLabel?: string;
 };
 
+function normalizeIp(value: string | null | undefined): string | null {
+  const trimmed = String(value ?? "").trim();
+  if (!trimmed) return null;
+  // quick defensive guard against obvious header-injection artifacts
+  if (trimmed.includes("\n") || trimmed.includes("\r")) return null;
+  return trimmed;
+}
+
+function parseForwardedFor(value: string | null | undefined): string | null {
+  const first = String(value ?? "").split(",")[0]?.trim();
+  return normalizeIp(first);
+}
+
+export function resolveClientIp(c: Context): string {
+  const cf = normalizeIp(c.req.header("cf-connecting-ip"));
+  if (cf) return cf;
+  const realIp = normalizeIp(c.req.header("x-real-ip"));
+  if (realIp) return realIp;
+  const trustXff = String(process.env.TRUST_X_FORWARDED_FOR ?? "").trim().toLowerCase() === "true";
+  if (trustXff) {
+    const xff = parseForwardedFor(c.req.header("x-forwarded-for"));
+    if (xff) return xff;
+  }
+  return "local";
+}
+
 /**
  * Each namespace gets its own bucket map so that a "global" limiter and
  * a stricter "auth-sync" limiter never share counters.
@@ -78,7 +104,7 @@ export function createRateLimit(opts: RateLimitOpts) {
     try {
       key = opts.keyExtractor
         ? await opts.keyExtractor(c)
-        : c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+        : resolveClientIp(c);
     } catch {
       // If the extractor throws (e.g. malformed body), skip this limiter
       // gracefully — the handler's own validation will reject the request.
@@ -226,5 +252,22 @@ export const agencyAdminLoginRateLimit = createRateLimit({
   limit: AGENCY_ADMIN_LOGIN_LIMIT,
   windowMs: AGENCY_ADMIN_LOGIN_WINDOW_MS,
   namespace: "auth-agency-admin-login",
+  keyLabel: "IP",
+});
+
+const ANALYTICS_INGEST_LIMIT = Math.max(
+  10,
+  Math.min(parseInt(process.env.ANALYTICS_INGEST_RATE_LIMIT ?? "120", 10) || 120, 1000),
+);
+
+const ANALYTICS_INGEST_WINDOW_MS = Math.max(
+  1_000,
+  Math.min(parseInt(process.env.ANALYTICS_INGEST_RATE_WINDOW_MS ?? String(60_000), 10) || 60_000, 10 * 60_000),
+);
+
+export const analyticsIngestRateLimit = createRateLimit({
+  limit: ANALYTICS_INGEST_LIMIT,
+  windowMs: ANALYTICS_INGEST_WINDOW_MS,
+  namespace: "analytics-events-ip",
   keyLabel: "IP",
 });
