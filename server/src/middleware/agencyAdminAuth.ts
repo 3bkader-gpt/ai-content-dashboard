@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import type { Context } from "hono";
+import { isGarbageToken } from "../lib/authUtils";
 
 const encoder = new TextEncoder();
 const SESSION_HEADER = "x-agency-admin-session";
@@ -20,7 +21,8 @@ function getAdminAuthSecret(): Uint8Array | null {
 }
 
 export function getAgencyAdminSessionToken(c: Context): string {
-  return c.req.header(SESSION_HEADER)?.trim() ?? "";
+  const token = c.req.header(SESSION_HEADER)?.trim() ?? "";
+  return isGarbageToken(token) ? "" : token;
 }
 
 export async function issueAgencyAdminSessionToken(username: string): Promise<string | null> {

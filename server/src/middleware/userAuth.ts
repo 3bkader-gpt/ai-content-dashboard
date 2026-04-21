@@ -4,6 +4,7 @@ import {
   errors as joseErrors,
 } from "jose";
 import type { Context, Next } from "hono";
+import { isGarbageToken } from "../lib/authUtils";
 
 export type AuthUserClaims = {
   supabaseUserId: string;
@@ -48,7 +49,8 @@ function getSupabaseJwks(url: string) {
 function parseBearerToken(c: Context): string {
   const raw = c.req.header("authorization") ?? "";
   if (!raw.toLowerCase().startsWith("bearer ")) return "";
-  return raw.slice(7).trim();
+  const token = raw.slice(7).trim();
+  return isGarbageToken(token) ? "" : token;
 }
 
 function isApiSecretToken(token: string): boolean {
