@@ -8,7 +8,7 @@ function parseBearerToken(raw: string): string {
 
 function isJwtLikeToken(token: string): boolean {
   // Minimal structural gate: JWTs are 3 dot-separated base64url sections.
-  if (!token) return false;
+  if (!token || token === "undefined" || token === "null") return false;
   const parts = token.split(".");
   return parts.length === 3 && parts.every((part) => part.length > 0);
 }
@@ -20,7 +20,8 @@ export async function bearerAuth(c: Context, next: Next) {
   const bearerToken = parseBearerToken(auth);
 
   // Path 1: explicit bearer auth (service secret or JWT-like bearer token).
-  if (bearerToken) {
+  // Filter out common JS garbage tokens like "undefined" or "null" strings.
+  if (bearerToken && bearerToken !== "undefined" && bearerToken !== "null") {
     if (!secret) {
       if (isProd) {
         console.error("[SECURITY] Authorization header provided but API_SECRET is missing in production.");
@@ -51,6 +52,7 @@ export async function bearerAuth(c: Context, next: Next) {
     c.set("agencyAdminSession", adminSession);
     return await next();
   }
-
-  return c.json({ error: "Unauthorized" }, 401);
+  // Path 3: no auth headers provided.
+  // Allow downstream middleware (e.g., optionalSupabaseUser) or route handler to proceed.
+  return await next();
 }

@@ -27,6 +27,7 @@ describe("bearerAuth boundary hardening", () => {
       headers: {
         Origin: "https://trusted.example.com",
         Referer: "https://trusted.example.com/app",
+        Authorization: "Bearer invalid-garbage-token",
       },
     });
     expect(res.status).toBe(401);
