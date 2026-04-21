@@ -83,7 +83,7 @@ export default function UserLayout({ demoBanner }: { demoBanner?: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-gray-100">
-      <div className="mx-auto flex max-w-[88rem] gap-4 px-3 py-3 sm:px-6 lg:flex-row-reverse">
+      <div className="mx-auto flex max-w-[88rem] gap-4 px-3 py-3 sm:px-6">
         <aside className="sticky top-3 hidden h-[calc(100vh-1.5rem)] w-80 shrink-0 flex-col rounded-3xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#0f0f10] lg:flex">
           <Link to="/" className="mb-6 flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-black">
@@ -178,7 +178,7 @@ export default function UserLayout({ demoBanner }: { demoBanner?: ReactNode }) {
                 className="absolute inset-0 bg-black/50"
                 aria-label="Close navigation menu"
               />
-              <div className="absolute right-0 top-0 h-full w-[85%] max-w-xs border-l border-gray-200 bg-white p-4 shadow-xl dark:border-white/10 dark:bg-[#0f0f10]">
+              <div className="absolute left-0 top-0 h-full w-[85%] max-w-xs border-r border-gray-200 bg-white p-4 shadow-xl dark:border-white/10 dark:bg-[#0f0f10]">
                 <div className="mb-4 flex items-center justify-between">
                   <p className="text-sm font-semibold">Navigation</p>
                   <button type="button" onClick={() => setMobileOpen(false)} className="rounded p-1">
