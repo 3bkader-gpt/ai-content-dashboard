@@ -106,5 +106,22 @@ describe("auth routes admin login throttling", () => {
     });
     expect(res.status).toBe(400);
   });
+
+  it("keeps admin login public even when protected auth middleware blocks other routes", async () => {
+    const { createAuthRouter } = await import("./auth.js");
+    const guardedApp = createAuthRouter(async (c, _next) => c.json({ error: "Unauthorized" }, 401));
+
+    const login = await guardedApp.request("/api/auth/agency-admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-real-ip": "2.2.2.11" },
+      body: JSON.stringify({ username: "admin", password: "pass-123" }),
+    });
+    expect(login.status).toBe(200);
+
+    const me = await guardedApp.request("/api/auth/me", {
+      headers: { "X-Device-ID": "11111111-1111-1111-1111-111111111111" },
+    });
+    expect(me.status).toBe(401);
+  });
 });
 

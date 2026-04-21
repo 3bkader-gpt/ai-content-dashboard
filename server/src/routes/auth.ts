@@ -65,9 +65,8 @@ function utf8ByteLength(value: string): number {
 
 export function createAuthRouter(mw: (c: import("hono").Context, next: Next) => Promise<void | Response>) {
   const app = new Hono();
-  app.use("/api/auth/*", mw);
 
-  app.get("/api/auth/me", async (c) => {
+  app.get("/api/auth/me", async (c, next) => await mw(c, next), async (c) => {
     const device = requireDeviceId(c);
     if (!device.ok) return device.response;
     const authUser = getAuthUser(c);
@@ -110,6 +109,7 @@ export function createAuthRouter(mw: (c: import("hono").Context, next: Next) => 
    * ---------------------------------------------------------------- */
   app.post(
     "/api/auth/sync",
+    async (c, next) => await mw(c, next),
     async (c, next) => await authSyncRateLimit(c, next),
     async (c, next) => await authSyncUserRateLimit(c, next),
     async (c, next) => await authSyncDeviceRateLimit(c, next),
