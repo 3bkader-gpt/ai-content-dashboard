@@ -1,5 +1,4 @@
 import { isGarbageToken } from "./authUtils";
-
 const ADMIN_SESSION_KEY = "agency_admin_session_token";
 
 export function getAdminSessionToken(): string {

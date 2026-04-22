@@ -160,7 +160,7 @@ export default function App() {
           />
         }
       >
-        <Route path="/" element={agencyEdition ? <Dashboard /> : v1PublicDecommission ? <V1PublicRedirect /> : <Dashboard />} />
+        <Route path="/" element={agencyEdition ? <Navigate to="/wizard/social" replace /> : v1PublicDecommission ? <V1PublicRedirect /> : <Dashboard />} />
         <Route path="/my-brands" element={<MyBrandsPage />} />
         <Route path="/generated-kits" element={agencyEdition ? <Navigate to="/" replace /> : v1PublicDecommission ? <V1PublicRedirect /> : <GeneratedKitsPage />} />
         <Route path="/pricing" element={<PricingPage />} />

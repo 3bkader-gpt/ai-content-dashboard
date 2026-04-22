@@ -202,7 +202,6 @@ export default function PricingPage() {
       <div className="max-w-2xl mx-auto rounded-2xl border border-gray-200 dark:border-white/10 bg-white/50 dark:bg-[#111] px-5 py-4 text-center text-sm text-gray-600 dark:text-gray-400 shadow-sm backdrop-blur-sm">
         الدفع يتم حاليًا مباشرة عبر واتساب (فودافون كاش / انستاباي) ضمن نموذج Productized Service لمرة واحدة.
       </div>
-
       {showLeadModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#111] p-6 shadow-xl">
