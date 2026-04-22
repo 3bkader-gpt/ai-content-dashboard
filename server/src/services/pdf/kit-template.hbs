@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{title}}</title>
+    <style>
+{{{css}}}
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="header card">
+        <div class="branding">
+          {{#if branding.logoUrl}}
+            <img class="logo" src="{{branding.logoUrl}}" alt="Agency Logo" />
+          {{/if}}
+          <div>
+            <h1>{{branding.agencyName}}</h1>
+            {{#if branding.contactLine}}
+              <p class="muted">{{branding.contactLine}}</p>
+            {{/if}}
+          </div>
+        </div>
+        <div class="meta">
+          <p><strong>Kit ID:</strong> {{kit.id}}</p>
+          <p><strong>Brand:</strong> {{kit.brandName}}</p>
+          <p><strong>Generated:</strong> {{kit.createdAt}}</p>
+        </div>
+      </header>
+
+      {{#if kit.narrativeSummary}}
+        <section class="card section">
+          <h2>ملخص الاستراتيجية</h2>
+          <p class="pre">{{kit.narrativeSummary}}</p>
+        </section>
+      {{/if}}
+
+      {{#if kit.diagnosisPlan.length}}
+        <section class="card section">
+          <h2>خطة التشخيص</h2>
+          <ul>
+            {{#each kit.diagnosisPlan}}
+              <li><strong>{{label}}:</strong> {{value}}</li>
+            {{/each}}
+          </ul>
+        </section>
+      {{/if}}
+
+      {{#if kit.posts.length}}
+        <section class="card section">
+          <h2>البوستات المقترحة</h2>
+          {{#each kit.posts}}
+            <article class="item">
+              <div class="row">
+                {{#if platform}}<span class="chip">{{platform}}</span>{{/if}}
+                {{#if format}}<span class="chip">{{format}}</span>{{/if}}
+                {{#if goal}}<span class="chip">{{goal}}</span>{{/if}}
+              </div>
+              {{#if caption}}
+                <p class="pre">{{caption}}</p>
+              {{/if}}
+              {{#if hashtags.length}}
+                <p class="hashtags">{{#each hashtags}}#{{this}} {{/each}}</p>
+              {{/if}}
+              {{#if cta}}
+                <p><strong>CTA:</strong> {{cta}}</p>
+              {{/if}}
+            </article>
+          {{/each}}
+        </section>
+      {{/if}}
+
+      {{#if kit.imageDesigns.length}}
+        <section class="card section">
+          <h2>التصاميم المقترحة</h2>
+          {{#each kit.imageDesigns}}
+            <article class="item">
+              <div class="row">
+                {{#if platformFormat}}<span class="chip">{{platformFormat}}</span>{{/if}}
+                {{#if designType}}<span class="chip">{{designType}}</span>{{/if}}
+                {{#if goal}}<span class="chip">{{goal}}</span>{{/if}}
+              </div>
+              {{#if caption}}
+                <p class="pre">{{caption}}</p>
+              {{/if}}
+              {{#if supportingCopy}}
+                <p class="pre muted">{{supportingCopy}}</p>
+              {{/if}}
+            </article>
+          {{/each}}
+        </section>
+      {{/if}}
+    </main>
+  </body>
+</html>

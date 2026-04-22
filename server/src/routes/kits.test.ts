@@ -7,6 +7,7 @@ const regenerateKitItemService = vi.fn();
 const retryKitService = vi.fn();
 const patchKitUiPreferencesService = vi.fn();
 const deleteKitService = vi.fn();
+const generateKitPdf = vi.fn();
 const isAgencyAdminRequest = vi.fn();
 
 vi.mock("../services/kitGenerationService.js", () => ({
@@ -17,6 +18,10 @@ vi.mock("../services/kitGenerationService.js", () => ({
   retryKitService,
   patchKitUiPreferencesService,
   deleteKitService,
+}));
+
+vi.mock("../services/pdfService.js", () => ({
+  generateKitPdf,
 }));
 
 vi.mock("../middleware/agencyAdminAuth.js", () => ({
@@ -201,6 +206,45 @@ describe("kits routes device header enforcement", () => {
 
     expect(res.status).toBe(200);
     expect(getKitByIdService).toHaveBeenCalledWith("k1", { deviceId, userId: null }, { includeUsage: false });
+  });
+
+  it("exports pdf for admin sessions only", async () => {
+    isAgencyAdminRequest.mockImplementation(async (c: { set: (k: string, v: unknown) => void }) => {
+      c.set("agencyAdminSession", { username: "ops-admin" });
+      return true;
+    });
+    getKitByIdService.mockResolvedValueOnce({
+      id: "k-pdf",
+      brief_json: "{\"brand_name\":\"Florenza\"}",
+      result_json: { posts: [] },
+      created_at: "2026-04-22T10:00:00.000Z",
+    });
+    generateKitPdf.mockResolvedValueOnce(Buffer.from("%PDF-test"));
+
+    const res = await appRequest("/api/kits/k-pdf/export-pdf?scope=all", {
+      method: "GET",
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("application/pdf");
+    expect(res.headers.get("content-disposition")).toContain("kit-k-pdf.pdf");
+    expect(getKitByIdService).toHaveBeenCalledWith("k-pdf", undefined, { includeUsage: true });
+    expect(generateKitPdf).toHaveBeenCalledWith({
+      id: "k-pdf",
+      brief_json: "{\"brand_name\":\"Florenza\"}",
+      result_json: { posts: [] },
+      created_at: "2026-04-22T10:00:00.000Z",
+    });
+  });
+
+  it("blocks pdf export when requester is not admin", async () => {
+    isAgencyAdminRequest.mockResolvedValue(false);
+    const res = await appRequest("/api/kits/k-pdf/export-pdf?scope=all", {
+      method: "GET",
+      headers: { "X-Device-ID": "a4be40b8-2ac6-4f59-9e14-a5cf6f39b4bd" },
+    });
+    expect([401, 403]).toContain(res.status);
+    expect(generateKitPdf).not.toHaveBeenCalled();
   });
 
   it("patches ui preferences with ownership context", async () => {

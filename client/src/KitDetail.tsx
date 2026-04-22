@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getKit, retryKit, ApiError } from "./api";
+import { getKit, retryKit, exportKitPdf, ApiError } from "./api";
 import type { KitSummary } from "./types";
 import { useToast } from "./useToast";
 import { emitWizardEvent } from "./lib/wizardAnalytics";
@@ -41,6 +41,7 @@ export default function KitDetail({ showTechnical = false }: { showTechnical?: b
   const [kit, setKit] = useState<KitSummary | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
   const [conflict, setConflict] = useState(false);
   const { toasts, push } = useToast();
 
@@ -94,6 +95,27 @@ export default function KitDetail({ showTechnical = false }: { showTechnical?: b
       }
     } finally {
       setRetrying(false);
+    }
+  };
+
+  const doExportPdf = async () => {
+    if (!kit || !showTechnical) return;
+    setExportingPdf(true);
+    try {
+      const blob = await exportKitPdf(kit.id);
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `kit-${kit.id}.pdf`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      push("PDF exported", "info");
+    } catch (e) {
+      push(e instanceof Error ? e.message : "Failed to export PDF.", "error");
+    } finally {
+      setExportingPdf(false);
     }
   };
 
@@ -206,6 +228,17 @@ export default function KitDetail({ showTechnical = false }: { showTechnical?: b
           </div>
         </div>
         <div className="flex w-full flex-wrap gap-3 lg:w-auto">
+          {showTechnical ? (
+            <button
+              type="button"
+              className={btnSecondary + " w-full sm:w-auto"}
+              disabled={exportingPdf}
+              onClick={() => void doExportPdf()}
+            >
+              <span className="material-symbols-outlined text-lg">download</span>
+              {exportingPdf ? "Exporting PDF…" : "Export PDF"}
+            </button>
+          ) : null}
           {showTechnical && kit.result_json ? (
             <button type="button" className={btnSecondary + " w-full sm:w-auto"} onClick={() => void copyResultJson()}>
               <span className="material-symbols-outlined text-lg">content_copy</span>

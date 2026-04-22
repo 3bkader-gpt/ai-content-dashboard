@@ -220,3 +220,11 @@ export async function deleteKit(id: string): Promise<void> {
   });
   if (!res.ok) throw new ApiError(await parseErrorMessage(res, res.statusText), res.status);
 }
+
+export async function exportKitPdf(id: string): Promise<Blob> {
+  const res = await fetch(apiUrl(`/api/kits/${id}/export-pdf?scope=all`), {
+    headers: buildHeaders(),
+  });
+  if (!res.ok) throw new ApiError(await parseErrorMessage(res, res.statusText), res.status);
+  return res.blob();
+}

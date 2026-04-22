@@ -91,6 +91,11 @@ cp .env.example client/.env.local
 #   - VITE_WHATSAPP_SALES_NUMBER=201025364905
 #   - Premium package CTA routes to WhatsApp (wa.me) with prefilled Arabic payment message
 # - optional team routing: TELEGRAM_WEBHOOK_URL or (TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID [+ TELEGRAM_THREAD_ID]), ADMIN_BASE_URL
+# - optional PDF export branding/runtime:
+#   - PDF_AGENCY_NAME=Your Agency
+#   - PDF_AGENCY_CONTACT=+20XXXXXXXXXX | support@example.com
+#   - PDF_AGENCY_LOGO_URL=https://example.com/logo.png
+#   - PDF_PUPPETEER_ARGS=--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage
 
 npm install
 npm run dev

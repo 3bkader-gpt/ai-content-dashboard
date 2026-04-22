@@ -11,6 +11,7 @@ import {
   regenerateKitItemService,
   retryKitService,
 } from "../services/kitGenerationService.js";
+import { generateKitPdf } from "../services/pdfService.js";
 import { respondHttpError } from "./httpErrorMapping.js";
 import { getAuthUser } from "../middleware/userAuth.js";
 import { ensureUserFromSupabase } from "../services/subscriptionService.js";
@@ -396,6 +397,36 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
       return c.json(await getKitByIdService(c.req.param("id"), owner, { includeUsage: scopeAll }));
     } catch (err) {
       return respondHttpError(c, err, "Unexpected error while loading kit.");
+    }
+  });
+
+  app.get("/api/kits/:id/export-pdf", async (c) => {
+    const blocked = await requireAdminAccess(c);
+    if (blocked) return blocked;
+    try {
+      const kit = (await getKitByIdService(c.req.param("id"), undefined, {
+        includeUsage: true,
+      })) as {
+        id: string;
+        brief_json: string;
+        result_json: unknown;
+        created_at: string;
+      };
+      const pdf = await generateKitPdf({
+        id: kit.id,
+        brief_json: kit.brief_json,
+        result_json: kit.result_json,
+        created_at: kit.created_at,
+      });
+      return new Response(new Uint8Array(pdf), {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `attachment; filename="kit-${kit.id}.pdf"`,
+          "Cache-Control": "no-store",
+        },
+      });
+    } catch (err) {
+      return respondHttpError(c, err, "Unexpected error while exporting PDF.");
     }
   });
 

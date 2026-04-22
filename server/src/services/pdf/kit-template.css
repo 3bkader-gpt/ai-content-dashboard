@@ -1,0 +1,113 @@
+@page {
+  size: A4;
+  margin: 18mm 14mm;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: #111827;
+  background: #ffffff;
+  font-family: "Cairo", "Noto Kufi Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  line-height: 1.65;
+  font-size: 12.5px;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.branding {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+}
+
+h1 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 14.5px;
+}
+
+.meta {
+  text-align: left;
+  font-size: 11px;
+}
+
+.meta p {
+  margin: 0 0 4px;
+}
+
+.section ul {
+  margin: 0;
+  padding-inline-start: 18px;
+}
+
+.item {
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+.item:first-of-type {
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.chip {
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 10.5px;
+}
+
+.pre {
+  white-space: pre-wrap;
+  margin: 0 0 6px;
+}
+
+.hashtags {
+  margin: 0 0 6px;
+  color: #0f766e;
+}
+
+.muted {
+  color: #6b7280;
+}

@@ -11,6 +11,7 @@ export {
   submitKitInteractionTelemetry,
   updateKitUiPreferences,
   deleteKit,
+  exportKitPdf,
 } from "./api/kits";
 export type {
   KitGenerationStreamEvent,
