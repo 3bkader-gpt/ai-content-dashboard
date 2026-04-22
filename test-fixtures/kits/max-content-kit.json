@@ -1,0 +1,262 @@
+{
+  "fixture_name": "max-content-kit",
+  "fixture_version": 1,
+  "description": "Permanent test fixture with max allowed kit content.",
+  "limits_snapshot": {
+    "num_posts_max": 25,
+    "num_image_designs_max": 10,
+    "num_video_prompts_max": 10,
+    "content_package_idea_count_max": 25
+  },
+  "brief": {
+    "submitted_at": "2026-04-22T00:00:00.000Z",
+    "email": "qa+max-kit@example.com",
+    "client_name": "QA Max Kit Client",
+    "client_phone": "+201000000000",
+    "client_email": "qa+max-kit@example.com",
+    "source_mode": "agency",
+    "brand_name": "MaxLoad Brand",
+    "industry": "E-commerce",
+    "business_links": "https://example.com https://instagram.com/maxload",
+    "target_audience": [
+      "Arabic-speaking online shoppers",
+      "SMB owners",
+      "Marketers"
+    ],
+    "main_goal": "Increase conversion",
+    "platforms": [
+      "Instagram",
+      "TikTok",
+      "Facebook"
+    ],
+    "brand_tone": "Confident",
+    "brand_colors": "#0E7490,#F59E0B,#111827",
+    "offer": "Premium monthly social growth package",
+    "competitors": "Competitor A, Competitor B",
+    "audience_pain_point": "Users fear low ROI from content spend.",
+    "visual_notes": "Modern clean design with bold hooks.",
+    "reference_image": "",
+    "campaign_duration": "30 days",
+    "budget_level": "9",
+    "best_content_types": [
+      "educational",
+      "social-proof",
+      "offer"
+    ],
+    "campaign_mode": "social",
+    "num_posts": 25,
+    "num_image_designs": 10,
+    "num_video_prompts": 10,
+    "diagnostic_role": "Founder",
+    "diagnostic_account_stage": "Growth",
+    "diagnostic_followers_band": "10k-50k",
+    "diagnostic_primary_blocker": "no-conversion",
+    "diagnostic_revenue_goal": "10000",
+    "include_content_package": true,
+    "content_package_idea_count": 25
+  },
+  "result_json": {
+    "narrative_summary": "This max fixture simulates a complete strategic content kit with the highest supported content volume for robust testing.",
+    "diagnosis_plan": {
+      "quickWin24h": "Publish one direct offer post and one social proof post in the first day.",
+      "focus7d": "Run a balanced cadence and monitor saves, shares, and CTR.",
+      "scale30d": "Scale top-performing hooks into paid boosts and retargeting.",
+      "risk_note": "Avoid repetitive creative fatigue by rotating themes."
+    },
+    "posts": [
+      { "platform": "Instagram", "format": "Carousel", "goal": "Awareness", "caption": "Post 01: Strong hook about ROI and credibility.", "hashtags": ["roi", "marketing", "arabiccontent"], "cta": "DM us for the full strategy" },
+      { "platform": "Instagram", "format": "Reel", "goal": "Engagement", "caption": "Post 02: Quick educational breakdown with practical tips.", "hashtags": ["reel", "tips", "content"], "cta": "Save and share this reel" },
+      { "platform": "TikTok", "format": "Short Video", "goal": "Reach", "caption": "Post 03: Myth vs reality about social growth.", "hashtags": ["tiktok", "growth", "mythbusting"], "cta": "Comment your biggest challenge" },
+      { "platform": "Facebook", "format": "Image Post", "goal": "Traffic", "caption": "Post 04: Case-study snapshot with numbers.", "hashtags": ["facebook", "caseStudy", "traffic"], "cta": "Click link in bio" },
+      { "platform": "Instagram", "format": "Carousel", "goal": "Conversion", "caption": "Post 05: Offer stack and value breakdown.", "hashtags": ["offer", "conversion", "socialmedia"], "cta": "Book your free audit now" },
+      { "platform": "Instagram", "format": "Reel", "goal": "Engagement", "caption": "Post 06: 3 mistakes killing your reach.", "hashtags": ["reach", "reels", "strategy"], "cta": "Tag a friend who needs this" },
+      { "platform": "TikTok", "format": "Short Video", "goal": "Awareness", "caption": "Post 07: Before/after messaging structure.", "hashtags": ["messaging", "brand", "creator"], "cta": "Follow for part 2" },
+      { "platform": "Facebook", "format": "Text + Image", "goal": "Trust", "caption": "Post 08: Testimonial-led narrative post.", "hashtags": ["testimonial", "trust", "brandgrowth"], "cta": "Message us to replicate this" },
+      { "platform": "Instagram", "format": "Carousel", "goal": "Education", "caption": "Post 09: Weekly content planning framework.", "hashtags": ["planning", "contentplan", "workflow"], "cta": "Save this framework" },
+      { "platform": "Instagram", "format": "Reel", "goal": "Reach", "caption": "Post 10: Hook library examples for Arabic brands.", "hashtags": ["hooks", "arabicmarketing", "creative"], "cta": "Use one today" },
+      { "platform": "TikTok", "format": "Short Video", "goal": "Conversion", "caption": "Post 11: Offer objection handling in 20 seconds.", "hashtags": ["objections", "sales", "shortform"], "cta": "DM for script template" },
+      { "platform": "Facebook", "format": "Image Post", "goal": "Traffic", "caption": "Post 12: KPI dashboard highlight post.", "hashtags": ["kpi", "analytics", "business"], "cta": "Read full breakdown" },
+      { "platform": "Instagram", "format": "Carousel", "goal": "Awareness", "caption": "Post 13: Positioning and differentiation map.", "hashtags": ["positioning", "branding", "market"], "cta": "Share with your team" },
+      { "platform": "Instagram", "format": "Reel", "goal": "Engagement", "caption": "Post 14: POV format for audience pain point.", "hashtags": ["pov", "painpoint", "audience"], "cta": "Comment if relatable" },
+      { "platform": "TikTok", "format": "Short Video", "goal": "Reach", "caption": "Post 15: Tactical growth checklist.", "hashtags": ["checklist", "growthtips", "creator"], "cta": "Save this checklist" },
+      { "platform": "Facebook", "format": "Text + Image", "goal": "Trust", "caption": "Post 16: Behind-the-scenes execution process.", "hashtags": ["behindthescenes", "operations", "agency"], "cta": "Ask for our SOP sample" },
+      { "platform": "Instagram", "format": "Carousel", "goal": "Conversion", "caption": "Post 17: Pricing clarity and package value.", "hashtags": ["pricing", "value", "offer"], "cta": "Book strategy call" },
+      { "platform": "Instagram", "format": "Reel", "goal": "Education", "caption": "Post 18: Content repurposing playbook.", "hashtags": ["repurpose", "efficiency", "content"], "cta": "Try this process today" },
+      { "platform": "TikTok", "format": "Short Video", "goal": "Awareness", "caption": "Post 19: One-liner hooks tested this month.", "hashtags": ["hooks", "testing", "creativity"], "cta": "Follow for more hooks" },
+      { "platform": "Facebook", "format": "Image Post", "goal": "Traffic", "caption": "Post 20: Funnel journey visual.", "hashtags": ["funnel", "journey", "marketing"], "cta": "Open full funnel guide" },
+      { "platform": "Instagram", "format": "Carousel", "goal": "Trust", "caption": "Post 21: Client wins and measurable outcomes.", "hashtags": ["results", "socialproof", "wins"], "cta": "DM for details" },
+      { "platform": "Instagram", "format": "Reel", "goal": "Reach", "caption": "Post 22: Trend adaptation for niche markets.", "hashtags": ["trends", "niche", "reels"], "cta": "Use this trend angle" },
+      { "platform": "TikTok", "format": "Short Video", "goal": "Engagement", "caption": "Post 23: Common mistakes in ad creatives.", "hashtags": ["ads", "creative", "mistakes"], "cta": "Comment your ad issue" },
+      { "platform": "Facebook", "format": "Text + Image", "goal": "Conversion", "caption": "Post 24: Direct callout with urgency.", "hashtags": ["urgency", "limitedOffer", "sales"], "cta": "Apply before spots fill" },
+      { "platform": "Instagram", "format": "Carousel", "goal": "Education", "caption": "Post 25: Monthly execution roadmap summary.", "hashtags": ["roadmap", "execution", "strategy"], "cta": "Save for monthly planning" }
+    ],
+    "image_designs": [
+      { "platform_format": "Instagram 1:1", "design_type": "Hero", "goal": "Awareness", "visual_scene": "Bold product showcase", "headline_text_overlay": "Scale Smarter", "supporting_copy": "Data-driven creative system", "caption_ar": "تصميم 01", "caption_en": "Design 01", "text_policy": "Arabic first", "conversion_trigger": "Value stack" },
+      { "platform_format": "Instagram 4:5", "design_type": "Carousel Slide", "goal": "Education", "visual_scene": "Framework card layout", "headline_text_overlay": "Weekly Playbook", "supporting_copy": "From idea to execution", "caption_ar": "تصميم 02", "caption_en": "Design 02", "text_policy": "Arabic first", "conversion_trigger": "Checklist reveal" },
+      { "platform_format": "Facebook 1:1", "design_type": "Testimonial", "goal": "Trust", "visual_scene": "Client quote focus", "headline_text_overlay": "Real Results", "supporting_copy": "Proof over promises", "caption_ar": "تصميم 03", "caption_en": "Design 03", "text_policy": "Bilingual", "conversion_trigger": "Social proof" },
+      { "platform_format": "Instagram Story 9:16", "design_type": "Offer Card", "goal": "Conversion", "visual_scene": "Countdown + CTA", "headline_text_overlay": "Limited Spots", "supporting_copy": "Join this month", "caption_ar": "تصميم 04", "caption_en": "Design 04", "text_policy": "Arabic first", "conversion_trigger": "Urgency" },
+      { "platform_format": "Instagram 1:1", "design_type": "Comparison", "goal": "Education", "visual_scene": "Before/After split", "headline_text_overlay": "Old vs New", "supporting_copy": "Message clarity wins", "caption_ar": "تصميم 05", "caption_en": "Design 05", "text_policy": "Arabic first", "conversion_trigger": "Contrast" },
+      { "platform_format": "Facebook 4:5", "design_type": "KPI Snapshot", "goal": "Traffic", "visual_scene": "Dashboard mock", "headline_text_overlay": "Track What Matters", "supporting_copy": "CTR, CPL, CVR", "caption_ar": "تصميم 06", "caption_en": "Design 06", "text_policy": "Bilingual", "conversion_trigger": "Data confidence" },
+      { "platform_format": "Instagram 1:1", "design_type": "FAQ Card", "goal": "Engagement", "visual_scene": "Q&A style", "headline_text_overlay": "Top Questions", "supporting_copy": "Answered clearly", "caption_ar": "تصميم 07", "caption_en": "Design 07", "text_policy": "Arabic first", "conversion_trigger": "Clarity" },
+      { "platform_format": "Instagram 4:5", "design_type": "Process", "goal": "Trust", "visual_scene": "Step-by-step timeline", "headline_text_overlay": "How We Execute", "supporting_copy": "Strategy to delivery", "caption_ar": "تصميم 08", "caption_en": "Design 08", "text_policy": "Arabic first", "conversion_trigger": "Transparency" },
+      { "platform_format": "Facebook 1:1", "design_type": "Offer Stack", "goal": "Conversion", "visual_scene": "Tiered value blocks", "headline_text_overlay": "What You Get", "supporting_copy": "Clear package value", "caption_ar": "تصميم 09", "caption_en": "Design 09", "text_policy": "Bilingual", "conversion_trigger": "Value anchoring" },
+      { "platform_format": "Instagram Story 9:16", "design_type": "CTA Story", "goal": "Conversion", "visual_scene": "Single bold CTA", "headline_text_overlay": "Book Now", "supporting_copy": "Free audit available", "caption_ar": "تصميم 10", "caption_en": "Design 10", "text_policy": "Arabic first", "conversion_trigger": "Immediate action" }
+    ],
+    "video_prompts": [
+      { "platform": "TikTok", "duration": "15s", "style": "UGC", "hook_type": "Question", "scenes": [{ "time": "0-3s", "label": "Hook" }, { "time": "3-10s", "label": "Value" }, { "time": "10-15s", "label": "CTA" }], "caption_ar": "فيديو 01", "caption_en": "Video 01", "ai_tool_instructions": "Camera close-up, fast jump cuts, end with CTA card.", "why_this_converts": "Strong contrast + direct pain point." },
+      { "platform": "TikTok", "duration": "20s", "style": "Explainer", "hook_type": "Myth", "scenes": [{ "time": "0-4s", "label": "Myth" }, { "time": "4-14s", "label": "Truth" }, { "time": "14-20s", "label": "CTA" }], "caption_ar": "فيديو 02", "caption_en": "Video 02", "ai_tool_instructions": "Text overlays synced to beats.", "why_this_converts": "Pattern interrupt + authority framing." },
+      { "platform": "Instagram Reels", "duration": "15s", "style": "Talking Head", "hook_type": "POV", "scenes": [{ "time": "0-3s", "label": "POV" }, { "time": "3-11s", "label": "Tips" }, { "time": "11-15s", "label": "CTA" }], "caption_ar": "فيديو 03", "caption_en": "Video 03", "ai_tool_instructions": "Use subtitles and branded lower-third.", "why_this_converts": "Relatable opener + concise education." },
+      { "platform": "Instagram Reels", "duration": "18s", "style": "B-roll", "hook_type": "Stat", "scenes": [{ "time": "0-4s", "label": "Stat" }, { "time": "4-13s", "label": "Context" }, { "time": "13-18s", "label": "CTA" }], "caption_ar": "فيديو 04", "caption_en": "Video 04", "ai_tool_instructions": "B-roll with kinetic typography.", "why_this_converts": "Data-led trust signal." },
+      { "platform": "TikTok", "duration": "15s", "style": "Listicle", "hook_type": "Mistake", "scenes": [{ "time": "0-2s", "label": "Hook" }, { "time": "2-12s", "label": "3 Mistakes" }, { "time": "12-15s", "label": "CTA" }], "caption_ar": "فيديو 05", "caption_en": "Video 05", "ai_tool_instructions": "Fast transitions between list points.", "why_this_converts": "Fear of loss + actionable fix." },
+      { "platform": "Instagram Reels", "duration": "20s", "style": "Case Study", "hook_type": "BeforeAfter", "scenes": [{ "time": "0-5s", "label": "Before" }, { "time": "5-15s", "label": "After" }, { "time": "15-20s", "label": "CTA" }], "caption_ar": "فيديو 06", "caption_en": "Video 06", "ai_tool_instructions": "Split-screen before/after sequence.", "why_this_converts": "Visible transformation proof." },
+      { "platform": "TikTok", "duration": "15s", "style": "Voiceover", "hook_type": "Challenge", "scenes": [{ "time": "0-3s", "label": "Challenge" }, { "time": "3-11s", "label": "Method" }, { "time": "11-15s", "label": "CTA" }], "caption_ar": "فيديو 07", "caption_en": "Video 07", "ai_tool_instructions": "Use challenge text card in first second.", "why_this_converts": "Challenge framing drives comments." },
+      { "platform": "Instagram Reels", "duration": "18s", "style": "Storytelling", "hook_type": "Narrative", "scenes": [{ "time": "0-4s", "label": "Conflict" }, { "time": "4-13s", "label": "Resolution" }, { "time": "13-18s", "label": "CTA" }], "caption_ar": "فيديو 08", "caption_en": "Video 08", "ai_tool_instructions": "Story arc with clear emotional beats.", "why_this_converts": "Narrative retention + emotional payoff." },
+      { "platform": "TikTok", "duration": "15s", "style": "Trend Remix", "hook_type": "Trend", "scenes": [{ "time": "0-2s", "label": "Trend Hook" }, { "time": "2-10s", "label": "Brand Twist" }, { "time": "10-15s", "label": "CTA" }], "caption_ar": "فيديو 09", "caption_en": "Video 09", "ai_tool_instructions": "Match trend audio timing precisely.", "why_this_converts": "Trend familiarity + niche relevance." },
+      { "platform": "Instagram Reels", "duration": "20s", "style": "Offer Reveal", "hook_type": "Urgency", "scenes": [{ "time": "0-4s", "label": "Hook" }, { "time": "4-14s", "label": "Offer" }, { "time": "14-20s", "label": "Deadline CTA" }], "caption_ar": "فيديو 10", "caption_en": "Video 10", "ai_tool_instructions": "Countdown overlay and final urgency screen.", "why_this_converts": "Urgency + clear value proposition." }
+    ],
+    "marketing_strategy": {
+      "content_mix_plan": "40% educational, 35% engagement, 25% direct offer.",
+      "weekly_posting_plan": "Daily short-form with 2 carousel deep-dives weekly.",
+      "platform_strategy": "Use Instagram for trust, TikTok for reach, Facebook for retargeting traffic.",
+      "key_messaging_angles": [
+        "ROI clarity",
+        "Execution simplicity",
+        "Proof-driven growth"
+      ],
+      "brand_positioning_statement": "MaxLoad Brand is the practical growth engine for Arabic-first online businesses."
+    },
+    "sales_system": {
+      "pain_points": [
+        "Low conversion from content",
+        "Inconsistent publishing",
+        "Weak messaging"
+      ],
+      "offer_structuring": "Stack outcomes first, then deliverables, then bonus urgency.",
+      "funnel_plan": "Reel hook -> DM keyword -> qualification -> strategy call.",
+      "ad_angles": [
+        "Before/after performance",
+        "Cost of inaction",
+        "Operator credibility"
+      ],
+      "objection_handling": [
+        { "objection": "Too expensive", "response": "Compare to monthly wasted ad spend without strategy." },
+        { "objection": "No time", "response": "We provide ready-to-publish assets and workflow templates." }
+      ],
+      "cta_strategy": "Primary CTA is booked call, secondary CTA is DM keyword."
+    },
+    "offer_optimization": {
+      "rewritten_offer": "Done-for-you monthly growth content system with strategy, execution, and optimization.",
+      "urgency_or_scarcity": "Only 5 onboarding spots per month.",
+      "alternative_offers": [
+        "Starter audit + 7-day sprint",
+        "Content-only execution package"
+      ]
+    },
+    "kpi_tracking": {
+      "top_kpis": [
+        "CTR",
+        "Saves",
+        "Shares",
+        "CPL",
+        "Booked calls"
+      ],
+      "benchmarks": "Target CTR > 1.8%, save rate > 3.5%, call booking rate > 8%.",
+      "optimization_actions": "Replace underperforming hooks every 7 days and iterate top 20% creatives.",
+      "ab_tests_week1": [
+        "Question hook vs stat hook",
+        "Offer-first CTA vs education-first CTA"
+      ]
+    },
+    "content_ideas_package": {
+      "ideas": [
+        { "id": 1, "title": "Idea 01", "description": "Strategic concept 01 for awareness and trust." },
+        { "id": 2, "title": "Idea 02", "description": "Strategic concept 02 for awareness and trust." },
+        { "id": 3, "title": "Idea 03", "description": "Strategic concept 03 for awareness and trust." },
+        { "id": 4, "title": "Idea 04", "description": "Strategic concept 04 for awareness and trust." },
+        { "id": 5, "title": "Idea 05", "description": "Strategic concept 05 for awareness and trust." },
+        { "id": 6, "title": "Idea 06", "description": "Strategic concept 06 for awareness and trust." },
+        { "id": 7, "title": "Idea 07", "description": "Strategic concept 07 for awareness and trust." },
+        { "id": 8, "title": "Idea 08", "description": "Strategic concept 08 for awareness and trust." },
+        { "id": 9, "title": "Idea 09", "description": "Strategic concept 09 for awareness and trust." },
+        { "id": 10, "title": "Idea 10", "description": "Strategic concept 10 for awareness and trust." },
+        { "id": 11, "title": "Idea 11", "description": "Strategic concept 11 for awareness and trust." },
+        { "id": 12, "title": "Idea 12", "description": "Strategic concept 12 for awareness and trust." },
+        { "id": 13, "title": "Idea 13", "description": "Strategic concept 13 for awareness and trust." },
+        { "id": 14, "title": "Idea 14", "description": "Strategic concept 14 for awareness and trust." },
+        { "id": 15, "title": "Idea 15", "description": "Strategic concept 15 for awareness and trust." },
+        { "id": 16, "title": "Idea 16", "description": "Strategic concept 16 for awareness and trust." },
+        { "id": 17, "title": "Idea 17", "description": "Strategic concept 17 for awareness and trust." },
+        { "id": 18, "title": "Idea 18", "description": "Strategic concept 18 for awareness and trust." },
+        { "id": 19, "title": "Idea 19", "description": "Strategic concept 19 for awareness and trust." },
+        { "id": 20, "title": "Idea 20", "description": "Strategic concept 20 for awareness and trust." },
+        { "id": 21, "title": "Idea 21", "description": "Strategic concept 21 for awareness and trust." },
+        { "id": 22, "title": "Idea 22", "description": "Strategic concept 22 for awareness and trust." },
+        { "id": 23, "title": "Idea 23", "description": "Strategic concept 23 for awareness and trust." },
+        { "id": 24, "title": "Idea 24", "description": "Strategic concept 24 for awareness and trust." },
+        { "id": 25, "title": "Idea 25", "description": "Strategic concept 25 for awareness and trust." }
+      ],
+      "hooks": [
+        { "idea_id": 1, "variant_index": 1, "hook_text": "Hook 01-A" }, { "idea_id": 1, "variant_index": 2, "hook_text": "Hook 01-B" },
+        { "idea_id": 2, "variant_index": 1, "hook_text": "Hook 02-A" }, { "idea_id": 2, "variant_index": 2, "hook_text": "Hook 02-B" },
+        { "idea_id": 3, "variant_index": 1, "hook_text": "Hook 03-A" }, { "idea_id": 3, "variant_index": 2, "hook_text": "Hook 03-B" },
+        { "idea_id": 4, "variant_index": 1, "hook_text": "Hook 04-A" }, { "idea_id": 4, "variant_index": 2, "hook_text": "Hook 04-B" },
+        { "idea_id": 5, "variant_index": 1, "hook_text": "Hook 05-A" }, { "idea_id": 5, "variant_index": 2, "hook_text": "Hook 05-B" },
+        { "idea_id": 6, "variant_index": 1, "hook_text": "Hook 06-A" }, { "idea_id": 6, "variant_index": 2, "hook_text": "Hook 06-B" },
+        { "idea_id": 7, "variant_index": 1, "hook_text": "Hook 07-A" }, { "idea_id": 7, "variant_index": 2, "hook_text": "Hook 07-B" },
+        { "idea_id": 8, "variant_index": 1, "hook_text": "Hook 08-A" }, { "idea_id": 8, "variant_index": 2, "hook_text": "Hook 08-B" },
+        { "idea_id": 9, "variant_index": 1, "hook_text": "Hook 09-A" }, { "idea_id": 9, "variant_index": 2, "hook_text": "Hook 09-B" },
+        { "idea_id": 10, "variant_index": 1, "hook_text": "Hook 10-A" }, { "idea_id": 10, "variant_index": 2, "hook_text": "Hook 10-B" },
+        { "idea_id": 11, "variant_index": 1, "hook_text": "Hook 11-A" }, { "idea_id": 11, "variant_index": 2, "hook_text": "Hook 11-B" },
+        { "idea_id": 12, "variant_index": 1, "hook_text": "Hook 12-A" }, { "idea_id": 12, "variant_index": 2, "hook_text": "Hook 12-B" },
+        { "idea_id": 13, "variant_index": 1, "hook_text": "Hook 13-A" }, { "idea_id": 13, "variant_index": 2, "hook_text": "Hook 13-B" },
+        { "idea_id": 14, "variant_index": 1, "hook_text": "Hook 14-A" }, { "idea_id": 14, "variant_index": 2, "hook_text": "Hook 14-B" },
+        { "idea_id": 15, "variant_index": 1, "hook_text": "Hook 15-A" }, { "idea_id": 15, "variant_index": 2, "hook_text": "Hook 15-B" },
+        { "idea_id": 16, "variant_index": 1, "hook_text": "Hook 16-A" }, { "idea_id": 16, "variant_index": 2, "hook_text": "Hook 16-B" },
+        { "idea_id": 17, "variant_index": 1, "hook_text": "Hook 17-A" }, { "idea_id": 17, "variant_index": 2, "hook_text": "Hook 17-B" },
+        { "idea_id": 18, "variant_index": 1, "hook_text": "Hook 18-A" }, { "idea_id": 18, "variant_index": 2, "hook_text": "Hook 18-B" },
+        { "idea_id": 19, "variant_index": 1, "hook_text": "Hook 19-A" }, { "idea_id": 19, "variant_index": 2, "hook_text": "Hook 19-B" },
+        { "idea_id": 20, "variant_index": 1, "hook_text": "Hook 20-A" }, { "idea_id": 20, "variant_index": 2, "hook_text": "Hook 20-B" },
+        { "idea_id": 21, "variant_index": 1, "hook_text": "Hook 21-A" }, { "idea_id": 21, "variant_index": 2, "hook_text": "Hook 21-B" },
+        { "idea_id": 22, "variant_index": 1, "hook_text": "Hook 22-A" }, { "idea_id": 22, "variant_index": 2, "hook_text": "Hook 22-B" },
+        { "idea_id": 23, "variant_index": 1, "hook_text": "Hook 23-A" }, { "idea_id": 23, "variant_index": 2, "hook_text": "Hook 23-B" },
+        { "idea_id": 24, "variant_index": 1, "hook_text": "Hook 24-A" }, { "idea_id": 24, "variant_index": 2, "hook_text": "Hook 24-B" },
+        { "idea_id": 25, "variant_index": 1, "hook_text": "Hook 25-A" }, { "idea_id": 25, "variant_index": 2, "hook_text": "Hook 25-B" }
+      ],
+      "templates": [
+        { "idea_id": 1, "template_format": "Template outline 01" },
+        { "idea_id": 2, "template_format": "Template outline 02" },
+        { "idea_id": 3, "template_format": "Template outline 03" },
+        { "idea_id": 4, "template_format": "Template outline 04" },
+        { "idea_id": 5, "template_format": "Template outline 05" },
+        { "idea_id": 6, "template_format": "Template outline 06" },
+        { "idea_id": 7, "template_format": "Template outline 07" },
+        { "idea_id": 8, "template_format": "Template outline 08" },
+        { "idea_id": 9, "template_format": "Template outline 09" },
+        { "idea_id": 10, "template_format": "Template outline 10" },
+        { "idea_id": 11, "template_format": "Template outline 11" },
+        { "idea_id": 12, "template_format": "Template outline 12" },
+        { "idea_id": 13, "template_format": "Template outline 13" },
+        { "idea_id": 14, "template_format": "Template outline 14" },
+        { "idea_id": 15, "template_format": "Template outline 15" },
+        { "idea_id": 16, "template_format": "Template outline 16" },
+        { "idea_id": 17, "template_format": "Template outline 17" },
+        { "idea_id": 18, "template_format": "Template outline 18" },
+        { "idea_id": 19, "template_format": "Template outline 19" },
+        { "idea_id": 20, "template_format": "Template outline 20" },
+        { "idea_id": 21, "template_format": "Template outline 21" },
+        { "idea_id": 22, "template_format": "Template outline 22" },
+        { "idea_id": 23, "template_format": "Template outline 23" },
+        { "idea_id": 24, "template_format": "Template outline 24" },
+        { "idea_id": 25, "template_format": "Template outline 25" }
+      ]
+    }
+  },
+  "validation_expectations": {
+    "posts_count": 25,
+    "image_designs_count": 10,
+    "video_prompts_count": 10,
+    "content_ideas_ideas_count": 25,
+    "content_ideas_hooks_count": 50,
+    "content_ideas_templates_count": 25
+  }
+}
