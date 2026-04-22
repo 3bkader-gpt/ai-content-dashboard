@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "build": "tsc && node scripts/ensurePuppeteerBrowser.mjs",
+    "build": "tsc && node scripts/copyPdfAssets.mjs && node scripts/ensurePuppeteerBrowser.mjs",
     "start": "node dist/index.js",
     "test": "vitest run",
     "db:push": "drizzle-kit push"
