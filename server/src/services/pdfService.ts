@@ -79,6 +79,14 @@ function readString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function safeLocalizedDate(value: unknown): string {
+  const raw = readString(value);
+  if (!raw) return new Date().toLocaleString("ar-EG");
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return new Date().toLocaleString("ar-EG");
+  return parsed.toLocaleString("ar-EG");
+}
+
 function pickFirst(...values: unknown[]): string {
   for (const value of values) {
     const parsed = readString(value);
@@ -145,9 +153,9 @@ function normalizeImageDesigns(resultJson: Record<string, unknown>): PdfImageDes
 function normalizeDiagnosisPlan(resultJson: Record<string, unknown>): Array<{ label: string; value: string }> {
   const plan = toRecord(resultJson.diagnosis_plan);
   return [
-    { label: "Quick Win 24h", value: readString(plan.quickWin24h) },
-    { label: "Focus 7d", value: readString(plan.focus7d) },
-    { label: "Scale 30d", value: readString(plan.scale30d) },
+    { label: "Quick Win 24h", value: pickFirst(plan.quickWin24h, plan.quick_win_24h) },
+    { label: "Focus 7d", value: pickFirst(plan.focus7d, plan.focus_7d) },
+    { label: "Scale 30d", value: pickFirst(plan.scale30d, plan.scale_30d) },
   ].filter((entry) => entry.value);
 }
 
@@ -177,7 +185,7 @@ function createViewModel(kit: KitPayload): KitPdfViewModel {
     kit: {
       id: kit.id,
       brandName,
-      createdAt: new Date(kit.created_at).toLocaleString("ar-EG"),
+      createdAt: safeLocalizedDate(kit.created_at),
       narrativeSummary: readString(resultJson.narrative_summary),
       diagnosisPlan: normalizeDiagnosisPlan(resultJson),
       posts: normalizePosts(resultJson),
@@ -221,12 +229,13 @@ export async function generateKitPdf(kitData: KitPayload): Promise<Buffer> {
   try {
     const page = await browser.newPage();
     await page.emulateMediaType("screen");
-    await page.setContent(html, { waitUntil: ["load", "networkidle0"] });
+    await page.setContent(html, { waitUntil: ["domcontentloaded", "load"], timeout: 120000 });
     const pdfBytes = await page.pdf({
       format: "A4",
       printBackground: true,
       preferCSSPageSize: true,
       scale: 1,
+      timeout: 120000,
       margin: {
         top: "20px",
         right: "20px",

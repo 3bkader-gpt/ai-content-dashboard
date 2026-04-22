@@ -37,4 +37,17 @@ describe("pdfService", () => {
     expect(html).toContain("k2");
     expect(html).toContain("Agency Export");
   });
+
+  it("builds html with fallback date and empty result payload", async () => {
+    const html = await buildKitPdfHtml({
+      id: "k3",
+      brief_json: "{\"brand_name\":\"Fallback Brand\"}",
+      created_at: "invalid-date",
+      result_json: null,
+    });
+
+    expect(html).toContain("Fallback Brand");
+    expect(html).toContain("k3");
+    expect(html).toContain("Agency Export");
+  });
 });

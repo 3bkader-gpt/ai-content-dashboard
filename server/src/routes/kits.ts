@@ -6,6 +6,7 @@ import {
   enqueueAgencyKitGenerationService,
   generateKitService,
   getKitByIdService,
+  HttpError,
   listKitsService,
   patchKitUiPreferencesService,
   regenerateKitItemService,
@@ -23,6 +24,30 @@ import { isAgencyAdminRequest } from "../middleware/agencyAdminAuth.js";
 const deviceIdSchema = z.string().uuid();
 const REASONING_TRACE_MAX_LINES = 24;
 const REASONING_TRACE_MAX_CHARS = 240;
+
+function normalizeBriefJson(value: unknown): string {
+  if (typeof value === "string") return value;
+  try {
+    return JSON.stringify((value as Record<string, unknown>) ?? {});
+  } catch {
+    return "{}";
+  }
+}
+
+function normalizeResultJson(value: unknown): Record<string, unknown> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return {};
+}
+
+function normalizeCreatedAt(value: unknown): string {
+  if (typeof value === "string" && value.trim()) {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) return value;
+  }
+  return new Date().toISOString();
+}
 
 const generateBodySchema = z
   .object({
@@ -403,8 +428,9 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
   app.get("/api/kits/:id/export-pdf", async (c) => {
     const blocked = await requireAdminAccess(c);
     if (blocked) return blocked;
+    const kitId = c.req.param("id");
     try {
-      const kit = (await getKitByIdService(c.req.param("id"), undefined, {
+      const kit = (await getKitByIdService(kitId, undefined, {
         includeUsage: true,
       })) as {
         id: string;
@@ -412,20 +438,11 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
         result_json: unknown;
         created_at: unknown;
       };
-      const briefJson =
-        typeof kit.brief_json === "string"
-          ? kit.brief_json
-          : JSON.stringify((kit.brief_json as Record<string, unknown>) ?? {});
-      const createdAt =
-        typeof kit.created_at === "string" && kit.created_at.trim()
-          ? kit.created_at
-          : new Date().toISOString();
       const pdf = await generateKitPdf({
         id: kit.id,
-        brief_json: briefJson,
-        result_json:
-          kit.result_json && typeof kit.result_json === "object" ? kit.result_json : {},
-        created_at: createdAt,
+        brief_json: normalizeBriefJson(kit.brief_json),
+        result_json: normalizeResultJson(kit.result_json),
+        created_at: normalizeCreatedAt(kit.created_at),
       });
       return new Response(new Uint8Array(pdf), {
         headers: {
@@ -435,6 +452,10 @@ export function createKitsRouter(mw: (c: import("hono").Context, next: Next) => 
         },
       });
     } catch (err) {
+      if (!(err instanceof HttpError)) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error("[export-pdf] unexpected failure", { kitId, message });
+      }
       return respondHttpError(c, err, "Unexpected error while exporting PDF.");
     }
   });

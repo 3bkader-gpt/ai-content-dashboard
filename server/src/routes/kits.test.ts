@@ -247,6 +247,32 @@ describe("kits routes device header enforcement", () => {
     expect(generateKitPdf).not.toHaveBeenCalled();
   });
 
+  it("normalizes malformed export payload fields before PDF generation", async () => {
+    isAgencyAdminRequest.mockImplementation(async (c: { set: (k: string, v: unknown) => void }) => {
+      c.set("agencyAdminSession", { username: "ops-admin" });
+      return true;
+    });
+    getKitByIdService.mockResolvedValueOnce({
+      id: "k-malformed",
+      brief_json: { brand_name: "Malformed Brief" },
+      result_json: null,
+      created_at: "not-a-date",
+    });
+    generateKitPdf.mockResolvedValueOnce(Buffer.from("%PDF-test"));
+
+    const res = await appRequest("/api/kits/k-malformed/export-pdf?scope=all", {
+      method: "GET",
+    });
+
+    expect(res.status).toBe(200);
+    expect(generateKitPdf).toHaveBeenCalledWith({
+      id: "k-malformed",
+      brief_json: "{\"brand_name\":\"Malformed Brief\"}",
+      result_json: {},
+      created_at: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
+    });
+  });
+
   it("patches ui preferences with ownership context", async () => {
     const deviceId = "43cef6f6-6085-4f41-b244-5b1a91c3b4af";
     patchKitUiPreferencesService.mockResolvedValueOnce({

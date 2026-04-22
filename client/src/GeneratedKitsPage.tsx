@@ -65,6 +65,7 @@ export default function GeneratedKitsPage({ adminMode = false }: { adminMode?: b
     setDownloadingLatest(true);
     let successCount = 0;
     let failedCount = 0;
+    const failedKitIds: string[] = [];
     try {
       for (const kit of latestThree) {
         try {
@@ -80,15 +81,16 @@ export default function GeneratedKitsPage({ adminMode = false }: { adminMode?: b
           successCount += 1;
         } catch {
           failedCount += 1;
+          failedKitIds.push(kit.id);
         }
         await new Promise((resolve) => setTimeout(resolve, 200));
       }
       if (successCount > 0 && failedCount === 0) {
         push("Latest 3 kit PDFs exported.", "info");
       } else if (successCount > 0 && failedCount > 0) {
-        push(`Exported ${successCount} PDF(s). Failed: ${failedCount}.`, "error");
+        push(`Exported ${successCount} PDF(s). Failed ${failedCount}: ${failedKitIds.join(", ")}.`, "error");
       } else {
-        push("Failed to export latest 3 PDFs.", "error");
+        push(`Failed to export latest 3 PDFs. IDs: ${failedKitIds.join(", ")}.`, "error");
       }
     } catch (error) {
       push(error instanceof Error ? error.message : "Failed to export latest 3 PDFs.", "error");
