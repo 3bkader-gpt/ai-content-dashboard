@@ -71,6 +71,28 @@ type CompiledTemplate = ReturnType<typeof Handlebars.compile>;
 
 let cachedTemplate: CompiledTemplate | null = null;
 let cachedCss = "";
+const FALLBACK_TEMPLATE = `<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{title}}</title>
+    <style>{{{css}}}</style>
+  </head>
+  <body>
+    <main class="pdf-fallback">
+      <h1>{{kit.brandName}}</h1>
+      <p>ID: {{kit.id}}</p>
+      <p>{{kit.createdAt}}</p>
+      {{#if kit.narrativeSummary}}<p>{{kit.narrativeSummary}}</p>{{/if}}
+    </main>
+  </body>
+</html>`;
+const FALLBACK_CSS = `
+body { font-family: Arial, sans-serif; color: #111; padding: 24px; }
+.pdf-fallback h1 { margin: 0 0 8px; font-size: 24px; }
+.pdf-fallback p { margin: 0 0 8px; font-size: 14px; line-height: 1.6; }
+`;
 
 function toRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
@@ -220,9 +242,8 @@ async function getCompiledTemplate(): Promise<CompiledTemplate> {
       continue;
     }
   }
-  if (!templateSource || !cssSource) {
-    throw new Error("PDF template assets not found in dist or src paths.");
-  }
+  if (!templateSource) templateSource = FALLBACK_TEMPLATE;
+  if (!cssSource) cssSource = FALLBACK_CSS;
   cachedCss = cssSource;
   cachedTemplate = Handlebars.compile(templateSource, { noEscape: true });
   return cachedTemplate;
