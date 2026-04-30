@@ -47,9 +47,9 @@ const PORTFOLIO = [
 export default function ClientOverview() {
   return (
     <div className="space-y-14 pb-8">
-      <section className="relative overflow-hidden rounded-3xl border border-gray-200 dark:border-white/10 bg-gradient-to-b from-gray-50 to-white dark:from-[#141416] dark:to-[#0f0f10] px-6 py-12 sm:px-10 sm:py-16">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-amber-400/15 blur-[72px]" />
-        <div className="pointer-events-none absolute -bottom-24 left-0 h-64 w-64 rounded-full bg-gray-900/10 dark:bg-white/5 blur-[80px]" />
+      <section className="relative overflow-hidden rounded-3xl border border-gray-200 dark:border-white/10 bg-gradient-to-b from-gray-50 to-white dark:from-zinc-900 dark:to-black px-6 py-12 sm:px-10 sm:py-16">
+        <div className="pointer-events-none absolute -right-14 -top-14 h-40 w-40 rounded-full bg-gray-400/15 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 left-0 h-44 w-44 rounded-full bg-gray-700/10 dark:bg-white/10 blur-3xl" />
         <div className="relative mx-auto max-w-3xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
             SocialGeni Client Portal
@@ -57,7 +57,7 @@ export default function ClientOverview() {
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl md:text-5xl">
             Welcome to your agency workspace
           </h1>
-          <p className="mt-2 text-sm font-medium text-gray-600 dark:text-gray-300 sm:text-base">
+          <p dir="rtl" lang="ar" className="mt-2 text-sm font-medium text-gray-600 dark:text-gray-300 sm:text-base">
             مرحبًا بك في بوابة الوكالة — محتوى احترافي مدعوم بالذكاء الاصطناعي
           </p>
           <p className="mt-4 text-base leading-relaxed text-gray-600 dark:text-gray-400 sm:text-lg">
@@ -70,7 +70,7 @@ export default function ClientOverview() {
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-gray-800 active:scale-[0.98] dark:bg-white dark:text-black dark:hover:bg-gray-100 sm:w-auto"
             >
               <span className="material-symbols-outlined text-[20px]">edit_square</span>
-              Start New Request
+              Start request and get first draft
             </Link>
             <Link
               to="/pricing"
@@ -87,20 +87,20 @@ export default function ClientOverview() {
           <h2 id="how-it-works-heading" className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-3xl">
             How it works
           </h2>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">كيف نعمل — ثلاث خطوات واضحة</p>
+          <p dir="rtl" lang="ar" className="mt-2 text-sm text-gray-500 dark:text-gray-400">كيف نعمل — ثلاث خطوات واضحة</p>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
           {STEPS.map((step, i) => (
             <article
               key={step.title}
-              className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#111]"
+              className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-zinc-900"
             >
               <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-black">
                 <span className="material-symbols-outlined text-[22px]">{step.icon}</span>
               </div>
-              <p className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400/90">Step {i + 1}</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">Step {i + 1}</p>
               <h3 className="mt-1 text-lg font-bold text-gray-900 dark:text-white">{step.title}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{step.titleAr}</p>
+              <p dir="rtl" lang="ar" className="text-sm text-gray-500 dark:text-gray-400">{step.titleAr}</p>
               <p className="mt-3 flex-1 text-sm leading-relaxed text-gray-600 dark:text-gray-300">{step.body}</p>
             </article>
           ))}
@@ -116,13 +116,32 @@ export default function ClientOverview() {
             Sample engagement types — representative of packages we deliver (illustrative).
           </p>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          <article className="group flex flex-col justify-between rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-zinc-900 lg:col-span-2">
+            <div>
+              <p className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-600 dark:border-white/10 dark:text-gray-300">
+                <span className="material-symbols-outlined text-sm">verified</span>
+                Featured delivery
+              </p>
+              <h3 className="mt-4 text-xl font-bold text-gray-900 dark:text-white">Cross-channel launch package</h3>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+                One brief, one aligned system: platform-specific posts, image concepts, short-form video prompts, and a
+                weekly publishing direction your team can execute immediately.
+              </p>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-white/10 dark:text-gray-200">Bilingual copy</span>
+              <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-white/10 dark:text-gray-200">Export-ready</span>
+              <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-white/10 dark:text-gray-200">Review workflow</span>
+            </div>
+          </article>
+
           {PORTFOLIO.map((item) => (
             <article
               key={item.title}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-[#111]"
+              className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-zinc-900 lg:col-span-1"
             >
-              <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 dark:bg-white/[0.06]">
+              <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 dark:bg-white/5">
                 <span className="material-symbols-outlined text-5xl text-gray-400 transition-transform group-hover:scale-105 dark:text-gray-500">
                   {item.icon}
                 </span>
@@ -146,7 +165,7 @@ export default function ClientOverview() {
           className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100"
         >
           <span className="material-symbols-outlined text-[20px]">rocket_launch</span>
-          Start New Request
+          Start request and preview your deliverables
         </Link>
       </section>
     </div>

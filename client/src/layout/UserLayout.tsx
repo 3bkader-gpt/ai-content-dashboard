@@ -83,6 +83,12 @@ export default function UserLayout({ demoBanner }: { demoBanner?: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-gray-100">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-gray-900 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white dark:focus:bg-white dark:focus:text-black"
+      >
+        Skip to main content
+      </a>
       <div className="mx-auto flex max-w-[88rem] gap-4 px-3 py-3 sm:px-6">
         <aside className="sticky top-3 hidden h-[calc(100vh-1.5rem)] w-80 shrink-0 flex-col rounded-3xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#0f0f10] lg:flex">
           <Link to="/" className="mb-6 flex items-center gap-3">
@@ -190,7 +196,7 @@ export default function UserLayout({ demoBanner }: { demoBanner?: ReactNode }) {
             </div>
           ) : null}
 
-          <main className="rounded-3xl border border-gray-200/80 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#0f0f10] sm:p-6">
+          <main id="main-content" className="rounded-3xl border border-gray-200/80 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#0f0f10] sm:p-6">
             {demoBanner}
             <Outlet />
           </main>
